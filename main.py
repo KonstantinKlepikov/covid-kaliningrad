@@ -90,6 +90,5 @@ def main():
             st.write(i[0])
             st.table(i[1])
 
-if __name__ == "__main__":
 
-    main()
+main()

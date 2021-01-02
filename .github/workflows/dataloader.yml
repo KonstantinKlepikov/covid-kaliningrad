@@ -34,10 +34,12 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Run dataprocessor
-      run: |
-        python dataprocessor.py
-    - uses: actions/upload-artifact@v2
-      with:
-        name: my-artifact
-        path: data
+    # - name: Run dataprocessor
+    #   run: |
+    #     python dataprocessor.py
+    # - uses: actions/upload-artifact@v2
+    #   with:
+    #     name: raw-data
+    #     path: |
+    #       data
+    #       !.gitignore

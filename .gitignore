@@ -11,7 +11,6 @@ venv/**
 *.dir
 *.pyc
 *~
-*.csv
 
 .ipynb_checkpoints
 *.egg-info
