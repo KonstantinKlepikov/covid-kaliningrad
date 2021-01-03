@@ -34,12 +34,20 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    # - name: Run dataprocessor
-    #   run: |
-    #     python dataprocessor.py
-    # - uses: actions/upload-artifact@v2
-    #   with:
-    #     name: raw-data
-    #     path: |
-    #       data
-    #       !.gitignore
+    - name: Run dataprocessor
+      run: |
+        python dataprocessor.py
+    - uses: actions/upload-artifact@v2
+    # https://github.com/actions/upload-artifact
+      with:
+        name: raw-data
+        path: data/data.csv
+        retention-days: 1
+    - uses: stefanzweifel/git-auto-commit-action@v4
+    # https://github.com/marketplace/actions/git-auto-commit
+      with:
+        # Optional but recommended
+        # Defaults to "Apply automatic changes"
+        commit_message: Autoupdate raw-data
+        branch: main
+        file_pattern: data/data.csv
