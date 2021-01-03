@@ -1,6 +1,11 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+from pandas_profiling import ProfileReport
+from streamlit_pandas_profiling import st_profile_report
+import altair as alt
+import matplotlib.pyplot as plt
+plt.style.use('seaborn-white')
 import os
 
 
@@ -64,13 +69,42 @@ def main():
 
     data = pd.read_csv('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/main/data/data.csv')
     data = reduce_mem_usage(data)
-    page = st.sidebar.selectbox('Представление данных', ['В виде графиков', 'В виде таблиц'])    
+    data['дата'] = pd.to_datetime(data['дата'])
+    page = st.sidebar.selectbox('Представление данных', ['В виде графиков', 'В виде таблиц', 'Отчет о данных (долгая загрузка)'])
 
     if page == 'В виде графиков':
         st.header('Графики')
+
+        st.subheader('Динамика случаев заражения')
+
+        st.line_chart(data[['всего', 'ОРВИ', 'пневмония', 'без симптомов']])
+        
+        # st.vega_lite_chart(data[['дата', 'всего', 'ОРВИ', 'пневмония', 'без симптомов']], {
+        #     'mark': 'trail',
+        #     "width": 500, "height": 300,
+        #     'encoding': {
+        #         'x': {'field': 'дата', 'type': 'temporal'},
+        #         'y': {'field': 'всего', 'type': 'quantitative'},
+        #         # 'size': {'field': 'всего', 'type': 'quantitative'},
+        #         'color': {'field': 'всего', 'type': 'nominal'},
+        #         },
+        #         })
+
+        # fig, ax = plt.subplot()
+        # ax.plot(data['всего'], data['дата'], '-b', label='всего')
+        # ax.plot(data['ОРВИ'], data['дата'], '--g', label='симптомы орви')
+        # ax.plot(data['пневмония'], data['дата'], ':r', label='симптомы пневмонии')
+        # ax.plot(data['без симптомов'], data['дата'], '-.c', label='без симптомов')
+        # st.pyplot(fig)
+
     elif page == "В виде таблиц":
         st.header('Таблицы')
         st.table(data)
+    
+    elif page == 'Отчет о данных (долгая загрузка)':
+        st.subheader('Отчет о данных')
+        # report = ProfileReport(data.drop(['учебные учреждения'], axis=1))
+        # st_profile_report(report)
 
 
 main()
