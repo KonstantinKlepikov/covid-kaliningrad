@@ -20,7 +20,8 @@ def main():
 
     file_id = '1iAgNVDOUa-g22_VcuEAedR2tcfTlUcbFnXV5fMiqCR8'
     file_url = 'https://docs.google.com/spreadsheets/d/{file_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}'
-    sheets = ['data', 'destrib', 'rosstat']
+    # sheets = ['data', 'destrib', 'rosstat']
+    sheets = ['data']
 
     loader(file_id, file_url, sheets)
 

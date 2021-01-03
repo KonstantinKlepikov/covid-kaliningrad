@@ -63,7 +63,10 @@ class Processor:
 
         return df
 
-def loader():
+
+def servloader():
+
+    page = st.sidebar.selectbox('Представление данных', ['В виде графиков', 'В виде таблиц'])
 
     all_data = {}
     names = os.listdir('data')
@@ -73,15 +76,6 @@ def loader():
         if file_extension == '.csv':
             all_data[file_name] = pd.read_csv(os.path.join('data', name))
 
-    return all_data
-
-
-def main():
-
-    page = st.sidebar.selectbox('Представление данных', ['В виде графиков', 'В виде таблиц'])
-
-    all_data = loader()
-
     if page == 'В виде графиков':
         st.header('Графики')
     elif page == "В виде таблиц":
@@ -89,6 +83,18 @@ def main():
         for i in all_data.items():
             st.write(i[0])
             st.table(i[1])
+
+
+def main():
+
+    page = st.sidebar.selectbox('Представление данных', ['В виде графиков', 'В виде таблиц'])
+    data = pd.read_csv('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/main/data/data.csv')
+
+    if page == 'В виде графиков':
+        st.header('Графики')
+    elif page == "В виде таблиц":
+        st.header('Таблицы')
+        st.table(data)
 
 
 main()
