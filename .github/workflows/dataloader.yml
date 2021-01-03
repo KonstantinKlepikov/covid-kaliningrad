@@ -1,5 +1,5 @@
 # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#about-yaml-syntax-for-workflows
-name: Python package
+name: Autoupdate raw-data
 
 on:
   schedule:
@@ -46,8 +46,6 @@ jobs:
     - uses: stefanzweifel/git-auto-commit-action@v4
     # https://github.com/marketplace/actions/git-auto-commit
       with:
-        # Optional but recommended
-        # Defaults to "Apply automatic changes"
         commit_message: Autoupdate raw-data
         branch: main
         file_pattern: data/data.csv
