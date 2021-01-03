@@ -10,7 +10,7 @@ def loader(file_id, file_url, sheets):
         url = file_url.format_map(vars())
         get = requests.get(url)
         if get.status_code == 200:
-            table = pd.read_csv(url, parse_dates=['data'])
+            table = pd.read_csv(url, parse_dates=['дата'])
             table.fillna(0, inplace=True)
             path = os.path.join('data', sheet_name + '.csv')
             table.to_csv(path, index=False)
