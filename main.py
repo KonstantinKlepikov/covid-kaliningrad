@@ -4,65 +4,40 @@ import pandas as pd
 import os
 
 
-class Processor:
+def reduce_mem_usage(df):
+    """Reduce numeric
 
-    def __getattr__(self, attr):
-        if attr == 'data':
-            return self._data
-        else:
-            raise AttributeError(attr)
+    Args:
+        df (pandas data frame object): 
 
-    def __setattr__(self, attr, value):
-        if attr == 'data':
-            attr = '_data'
-        self.__dict__[attr] = value
+    Returns:
+        obj: reduced pandas data frame
+    """
+    numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
 
-    def reduce_mem_usage(self, df):
-        """
-        Reduce numeric 
-        
-        Parameters
-        ----------
-        :param df: pandas data frame
-            pd.DataFrame object
-
-        Return
-        ------
-
-        Pandas data frame object
-
-        Future
-        ------
-
-        - optimisation by transfer float to int
-        - reduce objects
-        """
-        numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
-
-        for col in df.columns:
-            col_type = df[col].dtypes
-            if col_type in numerics:
-                c_min = df[col].min()
-                c_max = df[col].max()
-                if str(col_type)[:3] == 'int':
-                    if c_min > np.iinfo(np.int8).min and c_max < np.iinfo(np.int8).max:
-                        df[col] = df[col].astype(np.int8)
-                    elif c_min > np.iinfo(np.int16).min and c_max < np.iinfo(np.int16).max:
-                        df[col] = df[col].astype(np.int16)
-                    elif c_min > np.iinfo(np.int32).min and c_max < np.iinfo(np.int32).max:
-                        df[col] = df[col].astype(np.int32)
-                    elif c_min > np.iinfo(np.int64).min and c_max < np.iinfo(np.int64).max:
-                        df[col] = df[col].astype(np.int64)  
+    for col in df.columns:
+        col_type = df[col].dtypes
+        if col_type in numerics:
+            c_min = df[col].min()
+            c_max = df[col].max()
+            if str(col_type)[:3] == 'int':
+                if c_min > np.iinfo(np.int8).min and c_max < np.iinfo(np.int8).max:
+                    df[col] = df[col].astype(np.int8)
+                elif c_min > np.iinfo(np.int16).min and c_max < np.iinfo(np.int16).max:
+                    df[col] = df[col].astype(np.int16)
+                elif c_min > np.iinfo(np.int32).min and c_max < np.iinfo(np.int32).max:
+                    df[col] = df[col].astype(np.int32)
+                elif c_min > np.iinfo(np.int64).min and c_max < np.iinfo(np.int64).max:
+                    df[col] = df[col].astype(np.int64)  
+            else:
+                if c_min > np.finfo(np.float16).min and c_max < np.finfo(np.float16).max:
+                    df[col] = df[col].astype(np.float16)
+                elif c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
+                    df[col] = df[col].astype(np.float32)
                 else:
-                    if c_min > np.finfo(np.float16).min and c_max < np.finfo(np.float16).max:
-                        df[col] = df[col].astype(np.float16)
-                    elif c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
-                        df[col] = df[col].astype(np.float32)
-                    else:
-                        df[col] = df[col].astype(np.float64)
+                    df[col] = df[col].astype(np.float64)
 
-        return df
-
+    return df
 
 def servloader():
 
@@ -87,8 +62,9 @@ def servloader():
 
 def main():
 
-    page = st.sidebar.selectbox('Представление данных', ['В виде графиков', 'В виде таблиц'])
     data = pd.read_csv('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/main/data/data.csv')
+    data = reduce_mem_usage(data)
+    page = st.sidebar.selectbox('Представление данных', ['В виде графиков', 'В виде таблиц'])    
 
     if page == 'В виде графиков':
         st.header('Графики')
