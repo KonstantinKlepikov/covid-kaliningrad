@@ -11,7 +11,7 @@ def loader(file_id, file_url, sheets):
         get = requests.get(url)
         if get.status_code == 200:
             try:
-                table = pd.read_csv(url, parse_dates=['дата'])
+                table = pd.read_csv(url, parse_dates=['дата'], dayfirst=True)
             except ValueError:
                 table = pd.read_csv(url)
             table.fillna(0, inplace=True)

@@ -67,9 +67,11 @@ def servloader():
 
 def main():
 
-    data = pd.read_csv('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/main/data/data.csv')
+    data = pd.read_csv('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/main/data/data.csv', index_col='дата')
+    data.index = pd.to_datetime(data.index)
+    # data['дата'] = pd.to_datetime(data['дата'])
     data = reduce_mem_usage(data)
-    data['дата'] = pd.to_datetime(data['дата'])
+
     page = st.sidebar.selectbox('Представление данных', ['В виде графиков', 'В виде таблиц', 'Отчет о данных (долгая загрузка)'])
 
     if page == 'В виде графиков':
@@ -77,21 +79,22 @@ def main():
 
         st.subheader('Динамика случаев заражения')
 
-        st.line_chart(data[['всего', 'ОРВИ', 'пневмония', 'без симптомов']])
+        data_tech = data[['всего', 'ОРВИ', 'пневмония', 'без симптомов']]
+
+        st.line_chart(data_tech, use_container_width=True)
         
-        st.vega_lite_chart(data[['дата', 'всего', 'ОРВИ', 'пневмония', 'без симптомов']], {
-            'mark': 'trail',
-            "width": 500, "height": 300,
-            'encoding': {
-                'x': {'field': 'дата', 'type': 'temporal'},
-                'y': {'field': 'всего', 'type': 'quantitative'},
-                # 'size': {'field': 'всего', 'type': 'quantitative'},
-                # 'color': {'field': 'всего', 'type': 'nominal'},
-                },
-                })
+        # st.vega_lite_chart(data[['дата', 'всего', 'ОРВИ', 'пневмония', 'без симптомов']], {
+        #     'mark': 'trail',
+        #     "width": 500, "height": 300,
+        #     'encoding': {
+        #         'x': {'field': 'дата', 'type': 'temporal'},
+        #         'y': {'field': 'всего', 'type': 'quantitative'},
+        #         'size': {'field': 'всего', 'type': 'quantitative'},
+        #         },
+        #         })
 
         fig, ax = plt.subplots(figsize=(12, 8))
-        ax.plot(data['дата'], data['всего'], label='всего')
+        ax.plot(data.index, data['всего'], label='всего')
         st.pyplot(fig)
 
     elif page == "В виде таблиц":
