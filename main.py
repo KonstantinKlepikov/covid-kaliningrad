@@ -79,23 +79,20 @@ def main():
 
         st.line_chart(data[['всего', 'ОРВИ', 'пневмония', 'без симптомов']])
         
-        # st.vega_lite_chart(data[['дата', 'всего', 'ОРВИ', 'пневмония', 'без симптомов']], {
-        #     'mark': 'trail',
-        #     "width": 500, "height": 300,
-        #     'encoding': {
-        #         'x': {'field': 'дата', 'type': 'temporal'},
-        #         'y': {'field': 'всего', 'type': 'quantitative'},
-        #         # 'size': {'field': 'всего', 'type': 'quantitative'},
-        #         'color': {'field': 'всего', 'type': 'nominal'},
-        #         },
-        #         })
+        st.vega_lite_chart(data[['дата', 'всего', 'ОРВИ', 'пневмония', 'без симптомов']], {
+            'mark': 'trail',
+            "width": 500, "height": 300,
+            'encoding': {
+                'x': {'field': 'дата', 'type': 'temporal'},
+                'y': {'field': 'всего', 'type': 'quantitative'},
+                # 'size': {'field': 'всего', 'type': 'quantitative'},
+                # 'color': {'field': 'всего', 'type': 'nominal'},
+                },
+                })
 
-        # fig, ax = plt.subplot()
-        # ax.plot(data['всего'], data['дата'], '-b', label='всего')
-        # ax.plot(data['ОРВИ'], data['дата'], '--g', label='симптомы орви')
-        # ax.plot(data['пневмония'], data['дата'], ':r', label='симптомы пневмонии')
-        # ax.plot(data['без симптомов'], data['дата'], '-.c', label='без симптомов')
-        # st.pyplot(fig)
+        fig, ax = plt.subplots(figsize=(12, 8))
+        ax.plot(data['дата'], data['всего'], label='всего')
+        st.pyplot(fig)
 
     elif page == "В виде таблиц":
         st.header('Таблицы')
