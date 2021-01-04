@@ -1,9 +1,4 @@
 altair
 numpy
-matplotlib
 pandas
-pandas-profiling
-seaborn
 streamlit
-streamlit-pandas-profiling
-

@@ -1,11 +1,9 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+import altair as alt
 from pandas_profiling import ProfileReport
 from streamlit_pandas_profiling import st_profile_report
-import altair as alt
-import matplotlib.pyplot as plt
-plt.style.use('seaborn-white')
 import os
 
 
@@ -44,65 +42,113 @@ def reduce_mem_usage(df):
 
     return df
 
-def servloader():
 
-    page = st.sidebar.selectbox('Представление данных', ['В виде графиков', 'В виде таблиц'])
+def linechart(title, data, type_='quantitative', interpolate='step', height=600):
 
-    all_data = {}
-    names = os.listdir('data')
+    """linearchart    
 
-    for name in names:
-        file_name, file_extension = os.path.splitext(name)
-        if file_extension == '.csv':
-            all_data[file_name] = pd.read_csv(os.path.join('data', name))
+    type of interpolation of linechart
 
-    if page == 'В виде графиков':
-        st.header('Графики')
-    elif page == "В виде таблиц":
-        st.header('Таблицы')
-        for i in all_data.items():
-            st.write(i[0])
-            st.table(i[1])
+        basis
+        basis-open
+        basis-closed
+        bundle
+        cardinal
+        cardinal-open
+        cardinal-closed
+        catmull-rom
+        linear
+        linear-closed
+        monotone
+        natural
+        step
+        step-before
+        step-after
+
+    str, default
+
+    Returns:
+        obj: linechart object
+    """
+
+    scales = alt.selection_interval(bind='scales')
+    source = data.melt('дата', var_name='category', value_name='y')
+    chart = alt.Chart(source).mark_line(interpolate=interpolate
+    ).encode(
+        alt.X('дата', type='temporal', title='Дата'),
+        alt.Y('y', type=type_, title='Количество'),
+        color='category:N',
+        tooltip=['дата:T', 'y:N']
+    ).properties(
+        title=title,
+        width=900,
+        height=height
+    ).add_selection(
+        scales
+    )
+
+    return chart
+
+
+# def servloader():
+
+#     page = st.sidebar.selectbox('Представление данных', ['В виде графиков', 'В виде таблиц'])
+
+#     all_data = {}
+#     names = os.listdir('data')
+
+#     for name in names:
+#         file_name, file_extension = os.path.splitext(name)
+#         if file_extension == '.csv':
+#             all_data[file_name] = pd.read_csv(os.path.join('data', name))
+
+#     if page == 'В виде графиков':
+#         st.header('Графики')
+#     elif page == "В виде таблиц":
+#         st.header('Таблицы')
+#         for i in all_data.items():
+#             st.write(i[0])
+#             st.table(i[1])
 
 
 def main():
 
-    data = pd.read_csv('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/main/data/data.csv', index_col='дата')
-    data.index = pd.to_datetime(data.index)
-    # data['дата'] = pd.to_datetime(data['дата'])
+    data = pd.read_csv('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/main/data/data.csv')
     data = reduce_mem_usage(data)
+    paginator = ['Динамика случаев заражения', 'Infection Rate', 'Данные об умерших', 'Корреляции (долгая загрузка)']
 
-    page = st.sidebar.selectbox('Представление данных', ['В виде графиков', 'В виде таблиц', 'Отчет о данных (долгая загрузка)'])
+    page = st.sidebar.radio('Графики', paginator)
 
-    if page == 'В виде графиков':
-        st.header('Графики')
+    if page == paginator[0]:
+        # cases
 
-        st.subheader('Динамика случаев заражения')
+        st.sidebar.header(paginator[0])
+        line_chart = linechart(paginator[0], data[['дата', 'всего', 'ОРВИ', 'пневмония', 'без симптомов']], interpolate='linear')
+        st.altair_chart(line_chart)
 
-        data_tech = data[['всего', 'ОРВИ', 'пневмония', 'без симптомов']]
-
-        st.line_chart(data_tech, use_container_width=True)
+    elif page == paginator[1]:
+        # ir
         
-        # st.vega_lite_chart(data[['дата', 'всего', 'ОРВИ', 'пневмония', 'без симптомов']], {
-        #     'mark': 'trail',
-        #     "width": 500, "height": 300,
-        #     'encoding': {
-        #         'x': {'field': 'дата', 'type': 'temporal'},
-        #         'y': {'field': 'всего', 'type': 'quantitative'},
-        #         'size': {'field': 'всего', 'type': 'quantitative'},
-        #         },
-        #         })
+        st.sidebar.header(paginator[1])
+        df = data[['дата', 'infection rate']]
+        df['infection rate'] = df['infection rate'].apply(lambda x: x.replace(',', '.'))
+        df['infection rate'] = df['infection rate'].apply(lambda x: float(x))
+        line_chart = linechart(paginator[1], df, interpolate='step', height=400)
+        st.altair_chart(line_chart)
+        st.table(data['infection rate'])
 
-        fig, ax = plt.subplots(figsize=(12, 8))
-        ax.plot(data.index, data['всего'], label='всего')
-        st.pyplot(fig)
+    elif page == paginator[2]:
+        # death
+     
+        st.sidebar.header(paginator[2])
+        line_chart = linechart('умерли от ковид', data[['дата', 'умерли от ковид']], height=400)
+        st.altair_chart(line_chart)
 
-    elif page == "В виде таблиц":
-        st.header('Таблицы')
-        st.table(data)
-    
-    elif page == 'Отчет о данных (долгая загрузка)':
-        st.subheader('Отчет о данных')
+        line_chart1 = linechart('умерли в палатах для ковид/пневмонии', data[['дата', 'умерли в палатах для ковид/пневмония с 1 апреля']], height=300)
+        st.altair_chart(line_chart1)
+
+    elif page == 'Корреляции (долгая загрузка)':
+        st.subheader('Корреляции')
         # report = ProfileReport(data.drop(['учебные учреждения'], axis=1))
         # st_profile_report(report)
 
