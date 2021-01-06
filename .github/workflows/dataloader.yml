@@ -41,11 +41,11 @@ jobs:
     # https://github.com/actions/upload-artifact
       with:
         name: raw-data
-        path: data/data.csv
+        path: data/*.csv
         retention-days: 1
     - uses: stefanzweifel/git-auto-commit-action@v4
     # https://github.com/marketplace/actions/git-auto-commit
       with:
         commit_message: Autoupdate raw-data
-        branch: main
-        file_pattern: data/data.csv
+        branch: data
+        file_pattern: data/*.csv
