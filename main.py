@@ -88,31 +88,9 @@ def linechart(title, data, type_='quantitative', interpolate='step', height=600)
     return chart
 
 
-# def servloader():
-
-#     page = st.sidebar.selectbox('Представление данных', ['В виде графиков', 'В виде таблиц'])
-
-#     all_data = {}
-#     names = os.listdir('data')
-
-#     for name in names:
-#         file_name, file_extension = os.path.splitext(name)
-#         if file_extension == '.csv':
-#             all_data[file_name] = pd.read_csv(os.path.join('data', name))
-
-#     if page == 'В виде графиков':
-#         st.header('Графики')
-#     elif page == "В виде таблиц":
-#         st.header('Таблицы')
-#         for i in all_data.items():
-#             st.write(i[0])
-#             st.table(i[1])
-
-
 def main():
 
-    data = pd.read_csv('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/main/data/data.csv')
-    data = reduce_mem_usage(data)
+    data = pd.read_csv('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/data/data/data.csv')
     paginator = ['Динамика случаев заражения', 'Infection Rate', 'Данные об умерших', 'Корреляции (долгая загрузка)']
 
     page = st.sidebar.radio('Графики', paginator)
@@ -128,12 +106,12 @@ def main():
         # ir
         
         st.sidebar.header(paginator[1])
-        df = data[['дата', 'infection rate']]
-        df['infection rate'] = df['infection rate'].apply(lambda x: x.replace(',', '.'))
-        df['infection rate'] = df['infection rate'].apply(lambda x: float(x))
-        line_chart = linechart(paginator[1], df, interpolate='step', height=400)
+        # df = data[['дата', 'infection rate']]
+        # df['infection rate'] = df['infection rate'].apply(lambda x: x.replace(',', '.'))
+        # df['infection rate'] = df['infection rate'].apply(lambda x: float(x))
+        line_chart = linechart(paginator[1], data[['дата', 'infection rate']], interpolate='step', height=400)
         st.altair_chart(line_chart)
-        st.table(data['infection rate'])
+        st.table(data[['дата', 'infection rate']])
 
     elif page == paginator[2]:
         # death
