@@ -37,13 +37,11 @@ def reduce_mem_usage(df):
                     df[col] = df[col].astype(np.float32)
                 else:
                     df[col] = df[col].astype(np.float64)
-
     return df
 
 
-def linechart(title, data, type_='quantitative', interpolate='step', height=600):
-
-    """linearchart    
+def linechart(title, data, type_='quantitative', interpolate='step', height=600, level=False, poly=False):
+    """linearchart
 
     type of interpolation of linechart
 
@@ -68,15 +66,57 @@ def linechart(title, data, type_='quantitative', interpolate='step', height=600)
     Returns:
         obj: linechart object
     """
+    # Prepare data
+    source = data.melt('дата', var_name='показатель', value_name='y')
 
+    # Create chart scaling
     scales = alt.selection_interval(bind='scales')
-    source = data.melt('дата', var_name='category', value_name='y')
-    chart = alt.Chart(source).mark_line(interpolate=interpolate
+
+    # Create a selection that chooses the nearest point & selects based on x-value
+    nearest = alt.selection(type='single',
+                            nearest=True,
+                            on='mouseover',
+                            fields=['дата'],
+                            empty='none'
+                            )
+
+    # Create main chart
+    line = alt.Chart(source).mark_line(interpolate=interpolate
     ).encode(
-        alt.X('дата', type='temporal', title='Дата'),
-        alt.Y('y', type=type_, title='Количество'),
-        color='category:N',
-        tooltip=['дата:T', 'y:N']
+        alt.X('дата', type='temporal', title='дата', axis=alt.Axis(grid=False, offset=10)),
+        alt.Y('y', type=type_, title='количество', axis=alt.Axis(grid=False, offset=10)),
+        color='показатель:N'
+    )
+
+    # Transparent selectors across the chart. This is what tells us
+    # the x-value of the cursor
+    selectors = alt.Chart(source).mark_point().encode(
+        alt.X('дата', type='temporal'),
+        opacity=alt.value(0),
+    ).add_selection(
+        nearest
+    )
+
+    # Draw points on the line, and highlight based on selection
+    points = line.mark_point().encode(
+        opacity=alt.condition(nearest,alt.value(1), alt.value(0))
+    )
+
+    # Draw text labels near the points, and highlight based on selection
+    text = line.mark_text(align='left', dx=5, dy=-5).encode(
+        text=alt.condition(nearest, 'y:Q', alt.value(' '))
+    )
+
+    # Draw a rule at the location of the selection
+    rules = alt.Chart(source).mark_rule(color='gray').encode(
+        alt.X('дата', type='temporal')
+    ).transform_filter(
+        nearest
+    )
+
+    # Put the five layers into a chart and bind the data
+    chart = alt.layer(
+        line, selectors, points, rules, text
     ).properties(
         title=title,
         width=900,
@@ -85,42 +125,60 @@ def linechart(title, data, type_='quantitative', interpolate='step', height=600)
         scales
     )
 
-    return chart
+    # Create a chart
+    # With baseline == level
+    if level:
+        rule = alt.Chart(pd.DataFrame({'y': [level]})
+            ).mark_rule().encode(
+                y='y',
+                size=alt.value(0.5),
+                )
+        return chart + rule
+    # With polynomial regressiuon
+    elif poly:
+        degree_list = poly,
+        polynomial_fit = [
+            line.transform_regression(
+                'дата', 'y', method='poly', order=order, as_=['дата', str(order)]
+            ).mark_line(
+            ).transform_fold(
+                [str(order)], as_=['degree', 'y']
+            ).encode(alt.Color('degree:N'))
+            for order in degree_list
+        ]
+        return alt.layer(chart, *polynomial_fit)
+    # Empty
+    else:
+        return chart
 
 
 def main():
 
-    data = pd.read_csv('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/data/data/data.csv')
+    data = pd.read_csv('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/data.csv')
     paginator = ['Динамика случаев заражения', 'Infection Rate', 'Данные об умерших', 'Корреляции (долгая загрузка)']
 
     page = st.sidebar.radio('Графики', paginator)
 
+    # cases
     if page == paginator[0]:
-        # cases
-
         st.sidebar.header(paginator[0])
         line_chart = linechart(paginator[0], data[['дата', 'всего', 'ОРВИ', 'пневмония', 'без симптомов']], interpolate='linear')
         st.altair_chart(line_chart)
 
+    # ir
     elif page == paginator[1]:
-        # ir
-        
         st.sidebar.header(paginator[1])
-        # df = data[['дата', 'infection rate']]
-        # df['infection rate'] = df['infection rate'].apply(lambda x: x.replace(',', '.'))
-        # df['infection rate'] = df['infection rate'].apply(lambda x: float(x))
-        line_chart = linechart(paginator[1], data[['дата', 'infection rate']], interpolate='step', height=400)
+        line_chart = linechart(paginator[1], data[['дата', 'infection rate']], interpolate='step', height=400, level=1)
         st.altair_chart(line_chart)
         st.table(data[['дата', 'infection rate']])
 
+    # death
     elif page == paginator[2]:
-        # death
-     
         st.sidebar.header(paginator[2])
-        line_chart = linechart('умерли от ковид', data[['дата', 'умерли от ковид']], height=400)
+        line_chart = linechart('умерли от ковид', data[['дата', 'умерли от ковид']], height=400, poly=5)
         st.altair_chart(line_chart)
 
-        line_chart1 = linechart('умерли в палатах для ковид/пневмонии', data[['дата', 'умерли в палатах для ковид/пневмония с 1 апреля']], height=300)
+        line_chart1 = linechart('умерли в палатах для ковид/пневмонии', data[['дата', 'умерли в палатах для ковид/пневмония с 1 апреля']].query("'2020-11-01' <= дата"), height=300)
         st.altair_chart(line_chart1)
 
     elif page == 'Корреляции (долгая загрузка)':
