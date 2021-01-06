@@ -47,5 +47,5 @@ jobs:
     # https://github.com/marketplace/actions/git-auto-commit
       with:
         commit_message: Autoupdate raw-data
-        branch: data
+        branch: datasets
         file_pattern: data/*.csv
