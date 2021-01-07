@@ -5,42 +5,7 @@ import altair as alt
 import os
 
 
-def reduce_mem_usage(df):
-    """Reduce numeric
-
-    Args:
-        df (pandas data frame object): 
-
-    Returns:
-        obj: reduced pandas data frame
-    """
-    numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
-
-    for col in df.columns:
-        col_type = df[col].dtypes
-        if col_type in numerics:
-            c_min = df[col].min()
-            c_max = df[col].max()
-            if str(col_type)[:3] == 'int':
-                if c_min > np.iinfo(np.int8).min and c_max < np.iinfo(np.int8).max:
-                    df[col] = df[col].astype(np.int8)
-                elif c_min > np.iinfo(np.int16).min and c_max < np.iinfo(np.int16).max:
-                    df[col] = df[col].astype(np.int16)
-                elif c_min > np.iinfo(np.int32).min and c_max < np.iinfo(np.int32).max:
-                    df[col] = df[col].astype(np.int32)
-                elif c_min > np.iinfo(np.int64).min and c_max < np.iinfo(np.int64).max:
-                    df[col] = df[col].astype(np.int64)  
-            else:
-                if c_min > np.finfo(np.float16).min and c_max < np.finfo(np.float16).max:
-                    df[col] = df[col].astype(np.float16)
-                elif c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
-                    df[col] = df[col].astype(np.float32)
-                else:
-                    df[col] = df[col].astype(np.float64)
-    return df
-
-
-def linechart(title, data, type_='quantitative', interpolate='step', height=600, level=False, poly=False):
+def buildchart(title, data, type_='quantitative', interpolate='step', height=600, level=False, poly=False, tchart='linear'):
     """linearchart
 
     type of interpolation of linechart
@@ -80,13 +45,80 @@ def linechart(title, data, type_='quantitative', interpolate='step', height=600,
                             empty='none'
                             )
 
+    # Selection in a legend
+    leg = alt.selection_multi(fields=['показатель'], bind='legend')
+
     # Create main chart
-    line = alt.Chart(source).mark_line(interpolate=interpolate
-    ).encode(
-        alt.X('дата', type='temporal', title='дата', axis=alt.Axis(grid=False, offset=10)),
-        alt.Y('y', type=type_, title='количество', axis=alt.Axis(grid=False, offset=10)),
-        color='показатель:N'
-    )
+    if tchart == 'linear':
+        line = alt.Chart(source).mark_line(interpolate=interpolate
+        ).encode(
+            alt.X('дата', 
+                type='temporal', 
+                title='дата', 
+                axis=alt.Axis(grid=False, offset=10)
+                ),
+            alt.Y('y', 
+                type=type_, 
+                title='количество', 
+                axis=alt.Axis(grid=False, offset=10)
+                ),
+            alt.Color('показатель:N',
+                scale=alt.Scale(scheme='dark2')
+                ),
+            opacity=alt.condition(leg, 
+                alt.value(1), 
+                alt.value(0.2)
+                )
+        )
+
+    if tchart == 'point':
+        line = alt.Chart(source).mark_point(interpolate=interpolate
+        ).encode(
+            alt.X('дата', 
+                type='temporal', 
+                title='дата', 
+                axis=alt.Axis(grid=False, offset=10)
+                ),
+            alt.Y('y', 
+                type=type_, 
+                title='количество', 
+                scale=alt.Scale(zero=False),
+                axis=alt.Axis(grid=False, offset=10)
+                ),
+            alt.Color('показатель:N',
+                scale=alt.Scale(scheme='dark2')
+                ),
+            opacity=alt.condition(leg, 
+                alt.value(1), 
+                alt.value(0.2)
+                )
+        )
+
+    if tchart == 'area':
+        line = alt.Chart(source).mark_area(interpolate=interpolate
+        ).encode(
+            alt.X('дата', 
+                type='temporal', 
+                title='дата', 
+                axis=alt.Axis(grid=False, offset=10)
+                ),
+            alt.Y('y', 
+                type=type_, 
+                title='количество', 
+                scale=alt.Scale(zero=False),
+                axis=alt.Axis(grid=False, offset=10)
+                ),
+            alt.Color('показатель:N',
+                scale=alt.Scale(scheme='dark2')
+                ),
+            opacity=alt.condition(leg, 
+                alt.value(1), 
+                alt.value(0.2)
+                )
+        )
+
+    if tchart == 'bar':
+        pass
 
     # Transparent selectors across the chart. This is what tells us
     # the x-value of the cursor
@@ -99,12 +131,17 @@ def linechart(title, data, type_='quantitative', interpolate='step', height=600,
 
     # Draw points on the line, and highlight based on selection
     points = line.mark_point().encode(
-        opacity=alt.condition(nearest,alt.value(1), alt.value(0))
+        opacity=alt.condition(nearest, alt.value(1), alt.value(0))
     )
 
     # Draw text labels near the points, and highlight based on selection
-    text = line.mark_text(align='left', dx=5, dy=-5).encode(
+    text = line.mark_text(align='right', dx=-5, dy=-10).encode(
         text=alt.condition(nearest, 'y:Q', alt.value(' '))
+    )
+
+    # Draw X value on chart
+    x_text = line.mark_text(align="left", dx=5, dy=10).encode(
+        text=alt.condition(nearest, "дата:T", alt.value(" "), format='%Y-%m-%d')
     )
 
     # Draw a rule at the location of the selection
@@ -116,13 +153,13 @@ def linechart(title, data, type_='quantitative', interpolate='step', height=600,
 
     # Put the five layers into a chart and bind the data
     chart = alt.layer(
-        line, selectors, points, rules, text
+        line, selectors, points, rules, text, x_text
     ).properties(
         title=title,
         width=900,
         height=height
     ).add_selection(
-        scales
+        scales, leg
     )
 
     # Create a chart
@@ -142,8 +179,8 @@ def linechart(title, data, type_='quantitative', interpolate='step', height=600,
                 'дата', 'y', method='poly', order=order, as_=['дата', str(order)]
             ).mark_line(
             ).transform_fold(
-                [str(order)], as_=['degree', 'y']
-            ).encode(alt.Color('degree:N'))
+                [str(order)], as_=['регрессия', 'y']
+            ).encode(alt.Color('регрессия:N'))
             for order in degree_list
         ]
         return alt.layer(chart, *polynomial_fit)
@@ -155,31 +192,79 @@ def linechart(title, data, type_='quantitative', interpolate='step', height=600,
 def main():
 
     data = pd.read_csv('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/data.csv')
-    paginator = ['Динамика случаев заражения', 'Infection Rate', 'Данные об умерших', 'Корреляции (долгая загрузка)']
+    paginator = ['Динамика случаев заражения', 'Infection Rate', 'Данные об умерших', 'Данные о выписке', 'Корреляции (долгая загрузка)']
+
+    data['кумул. случаи'] = data['всего'].cumsum()
+    data['кумул.умерли'] = data['умерли от ковид'].cumsum()
+    data['кумул.выписаны'] = data['выписали'].cumsum()
+    
 
     page = st.sidebar.radio('Графики', paginator)
 
     # cases
     if page == paginator[0]:
         st.sidebar.header(paginator[0])
-        line_chart = linechart(paginator[0], data[['дата', 'всего', 'ОРВИ', 'пневмония', 'без симптомов']], interpolate='linear')
+        line_chart = buildchart(paginator[0], 
+                            data[['дата', 'всего', 'ОРВИ', 'пневмония', 'без симптомов']], 
+                            interpolate='linear')
+        st.altair_chart(line_chart)
+
+        # cumsum 
+        line_chart = buildchart('Случаи заражения кумулятивно', 
+                            data[['дата', 'кумул. случаи']], 
+                            height=400,
+                            interpolate='linear')
         st.altair_chart(line_chart)
 
     # ir
     elif page == paginator[1]:
         st.sidebar.header(paginator[1])
-        line_chart = linechart(paginator[1], data[['дата', 'infection rate']], interpolate='step', height=400, level=1)
+        line_chart = buildchart(paginator[1], 
+                            data[['дата', 'infection rate']], 
+                            interpolate='step', 
+                            height=600,
+                            level=1)
         st.altair_chart(line_chart)
         st.table(data[['дата', 'infection rate']])
 
     # death
     elif page == paginator[2]:
         st.sidebar.header(paginator[2])
-        line_chart = linechart('умерли от ковид', data[['дата', 'умерли от ковид']], height=400, poly=5)
+        line_chart = buildchart('умерли от ковид', 
+                            data[['дата', 'умерли от ковид']], 
+                            height=400, 
+                            poly=7,
+                            tchart='area')
         st.altair_chart(line_chart)
 
-        line_chart1 = linechart('умерли в палатах для ковид/пневмонии', data[['дата', 'умерли в палатах для ковид/пневмония с 1 апреля']].query("'2020-11-01' <= дата"), height=300)
+        # cumsum 
+        line_chart = buildchart('Смертельные случаи кумулятивно', 
+                            data[['дата', 'кумул.умерли']], 
+                            height=400,
+                            interpolate='linear')
+        st.altair_chart(line_chart)
+
+        line_chart1 = buildchart('умерли в палатах для ковид/пневмонии', 
+                            data[['дата', 'умерли в палатах для ковид/пневмония с 1 апреля']].query("'2020-11-01' <= дата & `умерли в палатах для ковид/пневмония с 1 апреля` > 0"),
+                            height=300,
+                            poly=2,
+                            tchart='point')
         st.altair_chart(line_chart1)
+
+    # exit
+    elif page == paginator[3]:
+        st.sidebar.header(paginator[3])
+        line_chart = buildchart('выписали', 
+                            data[['дата', 'всего', 'выписали']], 
+                            interpolate='linear')
+        st.altair_chart(line_chart)
+
+        # cumsum 
+        line_chart = buildchart('Выписаны из больниц кумулятивно', 
+                            data[['дата', 'кумул. случаи', 'кумул.выписаны']], 
+                            height=400,
+                            interpolate='linear')
+        st.altair_chart(line_chart)
 
     elif page == 'Корреляции (долгая загрузка)':
         st.subheader('Корреляции')
