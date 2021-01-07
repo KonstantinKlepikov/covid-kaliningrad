@@ -48,4 +48,5 @@ jobs:
       with:
         commit_message: Autoupdate raw-data
         branch: datasets
+        push_options: '--force'
         file_pattern: data/*.csv
