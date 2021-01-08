@@ -368,7 +368,6 @@ def main():
         _cols = [col for col in data.columns if 'округ' in col]
         _cols.append('дата')
         _cols.append('Калининград')
-        st.text(_cols)
         line_chart = buildchart('Распределение случаев по региону', 
             data[_cols], 
             height=600,
