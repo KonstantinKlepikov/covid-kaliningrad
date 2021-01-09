@@ -209,7 +209,7 @@ def main():
 
     data = pd.read_csv('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/data.csv')
     paginator = ['Введение', 
-                'Динамика случаев заражения', 
+                'Динамика заражения', 
                 'Infection Rate', 
                 'Данные об умерших', 
                 'Данные о выписке', 
@@ -239,15 +239,18 @@ def main():
         st.subheader('Описание проекта')
         st.markdown('Проект работает с открытыми данными, собранными из различных официальных источников. Актуальность информации зависит от скорости обновления таблицы и источника агрегации и может составлять от 15 минут до 8 часов с момента публикации. Предсталеные визуализированные данные не являются точными и не могут отражать истинную картину распространения covid-19 в Калининградской области. Автор проекта агрегирует данные с образовательной целью и не несет ответственности за их достоверность. Весь контент и код проекта предоставляется по [MIT лицензии](https://ru.wikipedia.org/wiki/%D0%9B%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F_MIT).')
 
+        st.subheader('Как это сделано?')
+        st.markdown('Чуть позже будет статья...')
+
         st.subheader('Изменения в версиях')
         st.markdown('**v1.1** Добавлена обработка данных и вывод основных визуализаций')
 
         st.subheader('Контакты')
-        st.markdown('[мой блог про machine learning](https://konstantinklepikov.github.io/)')
-        st.markdown('[я на github](https://github.com/KonstantinKlepikov)')
+        st.markdown('[Мой блог про machine learning](https://konstantinklepikov.github.io/)')
+        st.markdown('[Я на github](https://github.com/KonstantinKlepikov)')
         st.markdown('[Мой сайт немножко про маркетинг](https://yorb.ru/)')
-        st.markdown('[я в телеграм](https://t.me/KlepikovKonstantin)')
-        st.markdown('[я на фейсбуке](https://facebook.com/konstatin.klepikov)')
+        st.markdown('[Телеграм](https://t.me/KlepikovKonstantin)')
+        st.markdown('[Фейсбук](https://facebook.com/konstatin.klepikov)')
     
     # cases
     elif page == paginator[1]:
@@ -289,7 +292,6 @@ def main():
     # death
     elif page == paginator[3]:
         st.header(paginator[3])
-        st.markdown('Информация об умерших в палатах, отведенных для больных для больных пневмонией и covid получена по запросу newkalingrad.ru')
 
         line_chart = buildchart('умерли от ковид', 
             data[['дата', 'умерли от ковид']], 
@@ -309,6 +311,8 @@ def main():
         st.altair_chart(line_chart)
 
         # hospital death data
+        st.markdown('Информация об умерших в палатах, отведенных для больных для больных пневмонией/covid предоставлялась мед.службами по запросу newkalingrad.ru')
+
         line_chart1 = buildchart('умерли в палатах для ковид/пневмонии', 
             data[['дата', 'умерли в палатах для ковид/пневмония с 1 апреля']].query("'2020-11-01' <= дата & `умерли в палатах для ковид/пневмония с 1 апреля` > 0"),
             height=300,
@@ -340,7 +344,7 @@ def main():
     # systen capacity
     elif page == paginator[5]:
         st.header(paginator[5])
-        st.markdown('Активные случаи считаются как заразившиеся минус выписанные и умершие. Болеют ли эти люди в действительности установить невозможно. Данные о закгруженности больниц предоставлены мед.службами.')
+        st.markdown('Активные случаи - это заразившиеся минус выписанные и умершие. Болеют ли эти люди в текущий момент на самом деле установить невозможно. Данные о загруженности больниц предоставлены мед.службами.')
 
         # cumsum minus exit
         line_chart = buildchart('Активные случаи нарастающим итогом', 
@@ -367,7 +371,6 @@ def main():
     # tests
     elif page == paginator[6]:
         st.header(paginator[6])
-        st.markdown('Для наглядности, количество тестов разделено на 10 для приведенных графиков.')
 
         line_chart = buildchart('Общее количество тестов', 
             data[['дата', 'кол-во тестов']], 
@@ -377,6 +380,8 @@ def main():
         st.altair_chart(line_chart)
 
         # tesats and cases
+        st.markdown('Для наглядности, количество тестов разделено на 10 для приведенных графиков.')
+
         line_chart = buildchart('Тестирование и распространение болезни', 
             data[['дата', 'ОРВИ', 'пневмония', 'без симптомов', 'кол-во тестов / 10']], 
             height=500,
@@ -423,5 +428,13 @@ def main():
         # report = ProfileReport(data.drop(['учебные учреждения'], axis=1))
         # st_profile_report(report)
 
+hide_streamlit_style = """
+<style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+</style>
+
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
 main()
