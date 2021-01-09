@@ -35,7 +35,6 @@ def main():
     loaded['data']['infection rate'] = loaded['data']['infection rate'].apply(lambda x: str(x))
     loaded['data']['infection rate'] = loaded['data']['infection rate'].apply(lambda x: x.replace(',', '.'))
     loaded['data']['infection rate'] = loaded['data']['infection rate'].astype(np.float16)  
-#     loaded['data']['infection rate'] = loaded['data']['infection rate'].round(2)
     for i in loaded['data'].columns.difference(['дата', 'infection rate', 'учебные учреждения']):
         loaded['data'][i] = loaded['data'][i].astype(np.int16)
     loaded['data'].to_csv(pathMaker('data'), index=False)

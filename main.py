@@ -204,7 +204,7 @@ def buildchart(title, data, type_='quantitative', interpolate='step', height=600
 
 def main():
 
-    st.sidebar.header('Данные о covid-19 в Калининградской области')
+    st.sidebar.title('Данные о covid-19 в Калининградской области')
     st.sidebar.text('v' + __version__)
 
     data = pd.read_csv('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/data.csv')
@@ -226,6 +226,18 @@ def main():
     data['кол-во тестов / 10'] = data['кол-во тестов'] / 10
     data['все кроме Калининграда'] = data.filter(regex='округ').sum(axis=1)
 
+    people = 1012512
+    sick = data['всего'].sum()
+    proc = round(sick * 100 / people, 2)
+    dead = data['умерли от ковид'].sum()
+    let = round(dead * 100 / sick, 2)
+    ex = data['выписали'].sum()
+
+    st.sidebar.markdown('Всего заболело: **{sick}**'.format_map(vars()))
+    st.sidebar.markdown('От всего населения: **{proc}%**'.format_map(vars()))
+    st.sidebar.markdown('Официально умерло: **{dead}**'.format_map(vars()))
+    st.sidebar.markdown('Общая летальность: **{let}%**'.format_map(vars()))
+    st.sidebar.markdown('Выписано: **{ex}**'.format_map(vars()))
 
     page = st.sidebar.radio('Данные', paginator)
 
