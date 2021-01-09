@@ -242,13 +242,23 @@ def main():
     page = st.sidebar.radio('Данные', paginator)
 
     if page == paginator[0]:
-        box = st.radio(paginator[0], ['Описание проекта', 'Изменения в версиях', 'Как это сделано', 'Контакты'])
-        if box == 'Описание проекта':
-            st.subheader('Описание проекта')
+        st.header(paginator[0])
+        st.subheader('Описание проекта')
+        st.markdown('Проект работает с открытыми данными, собранными из различных официальных источников. Актуальность информации зависит от скорости обновления таблицы и источника агрегации и может составлять от 15 минут до 8 часов с момента публикации. Предсталеные визуализированные данные не являются точными и не могут отражать истинную картину распространения covid-19 в Калининградской области. Автор проекта агрегирует данные с образовательной целью и не несет ответственности за их достоверность. Весь контент и код проекта предоставляется по [MIT лицензии](https://ru.wikipedia.org/wiki/%D0%9B%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F_MIT).')
+
+        st.subheader('Изменения в версиях')
+        st.markdown('**v1.1** Добавлена обработка данных и вывод основных визуализаций')
+
+        st.subheader('Контакты')
+        st.markdown('[мой блог про machine learning](https://konstantinklepikov.github.io/)')
+        st.markdown('[я на github](https://github.com/KonstantinKlepikov)')
+        st.markdown('[Мой сайт немножко про маркетинг](https://yorb.ru/)')
+        st.markdown('[я в телеграм](https://t.me/KlepikovKonstantin)')
+        st.markdown('[я на фейсбуке](https://facebook.com/konstatin.klepikov)')
     
     # cases
     elif page == paginator[1]:
-        st.header(paginator[1])        
+        st.header(paginator[1])
 
         # cases
         line_chart = buildchart(paginator[1], 
@@ -286,7 +296,7 @@ def main():
     # death
     elif page == paginator[3]:
         st.header(paginator[3])
-        st.markdown('Информация орб умерших в палатах, отведенных для больных для больных пневмонией и covid получена по запросу newkalingrad.ru')
+        st.markdown('Информация об умерших в палатах, отведенных для больных для больных пневмонией и covid получена по запросу newkalingrad.ru')
 
         line_chart = buildchart('умерли от ковид', 
             data[['дата', 'умерли от ковид']], 
