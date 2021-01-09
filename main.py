@@ -7,7 +7,7 @@ import os
 __version__ = '1.1'
 
 
-def buildchart(title, data, type_='quantitative', interpolate='step', height=600, level=False, poly=False, tchart='linear', point=False, empty=False, scheme='set2'):
+def buildchart(title, data, type_='quantitative', interpolate='step', height=600, width=800, level=False, poly=False, tchart='linear', point=False, empty=False, scheme='category10'):
     """linearchart
 
     type of interpolation of linechart
@@ -82,9 +82,7 @@ def buildchart(title, data, type_='quantitative', interpolate='step', height=600
                 alt.value(1), 
                 alt.value(0.2)
                 )
-        )
-
-    
+        )    
 
     # Transparent selectors across the chart. This is what tells us
     # the x-value of the cursor
@@ -101,12 +99,12 @@ def buildchart(title, data, type_='quantitative', interpolate='step', height=600
     )
 
     # Draw text labels near the points, and highlight based on selection
-    text = line.mark_text(align='right', dx=-5, dy=-10).encode(
+    text = line.mark_text(align='right', dx=-5, fill='#000000').encode(
         text=alt.condition(nearest, 'y:Q', alt.value(' '))
     )
 
     # Draw X value on chart
-    x_text = line.mark_text(align="left", dx=5, dy=10).encode(
+    x_text = line.mark_text(align="right", dx=-5, dy=12).encode(
         text=alt.condition(nearest, "дата:T", alt.value(" "), format='%Y-%m-%d')
     )
 
@@ -118,22 +116,33 @@ def buildchart(title, data, type_='quantitative', interpolate='step', height=600
     )
 
     # Put the five layers into a chart and bind the data
-    chart = alt.layer(
-        line, selectors, points, rules, text, x_text
-    ).properties(
-        title=title,
-        width=900,
-        height=height
-    ).add_selection(
-        leg
-    )
+    if interpolate == 'step':
+        chart = alt.layer(
+            line, selectors, rules
+        ).properties(
+            title=title,
+            width=width,
+            height=height
+        ).add_selection(
+            leg
+        )
+    else:
+        chart = alt.layer(
+            line, selectors, points, rules, text, x_text
+        ).properties(
+            title=title,
+            width=width,
+            height=height
+        ).add_selection(
+            leg
+        )
 
     # Interval selection chart
     brush = alt.selection(type='interval', encodings=['x'])
     upper = chart.encode(
         alt.X('date:T', scale=alt.Scale(domain=brush))
     )
-    line = lchart.encode(
+    inline = lchart.encode(
         alt.X('дата', 
             type='temporal',
             title=' ', 
@@ -154,9 +163,9 @@ def buildchart(title, data, type_='quantitative', interpolate='step', height=600
             )
     )
     lower = alt.layer(
-        line, rules
+        inline, rules
     ).properties(
-        width=900,
+        width=width,
         height=20
     ).add_selection(
         brush
@@ -172,6 +181,7 @@ def buildchart(title, data, type_='quantitative', interpolate='step', height=600
                 )
         return chart + rule
     # With polynomial regressiuon
+    # to-do: cant work with color mapping
     elif poly:
         degree_list = poly,
         polynomial_fit = [
@@ -207,7 +217,7 @@ def main():
                 'Тестирование', 
                 'Регионы',
                 'Демография',
-                'Корреляции (долгая загрузка)']
+                'Корреляции']
 
     data['кумул. случаи'] = data['всего'].cumsum()
     data['кумул.умерли'] = data['умерли от ковид'].cumsum()
@@ -215,7 +225,7 @@ def main():
     data['кумул.активные'] = data['кумул. случаи'].sub(data['кумул.выписаны']).sub(data['кумул.умерли'])
     data['кол-во тестов / 10'] = data['кол-во тестов'] / 10
     data['все кроме Калининграда'] = data.filter(regex='округ').sum(axis=1)
-    
+
 
     page = st.sidebar.radio('Данные', paginator)
 
@@ -230,7 +240,8 @@ def main():
 
         # cases
         line_chart = buildchart(paginator[1], 
-                            data[['дата', 'всего', 'ОРВИ', 'пневмония', 'без симптомов']])
+                            data[['дата', 'всего', 'ОРВИ', 'пневмония', 'без симптомов']],
+                            interpolate='linear')
         st.altair_chart(line_chart)
 
         # area
@@ -253,12 +264,11 @@ def main():
         st.sidebar.header(paginator[2])
         line_chart = buildchart(paginator[2], 
                             data[['дата', 'infection rate']], 
-                            interpolate='step', 
+                            interpolate='linear', 
                             height=600,
                             level=1,
                             scheme='set1')
         st.altair_chart(line_chart)
-        st.table(data[['дата', 'infection rate']])
 
     # death
     elif page == paginator[3]:
@@ -309,6 +319,7 @@ def main():
 
     # systen capacity
     elif page == paginator[5]:
+        st.sidebar.header(paginator[5])
         # cumsum minus exit
         line_chart = buildchart('Активные случаи кумулятивно', 
             data[['дата', 'кумул.активные']], 
@@ -333,6 +344,7 @@ def main():
 
     # tests
     elif page == paginator[6]:
+        st.sidebar.header(paginator[6])
         line_chart = buildchart('Общее количество тестов', 
             data[['дата', 'кол-во тестов']], 
             height=600,
@@ -344,8 +356,7 @@ def main():
         line_chart = buildchart('Общее количество тестов', 
             data[['дата', 'ОРВИ', 'пневмония', 'без симптомов', 'кол-во тестов / 10']], 
             height=500,
-            interpolate='linear',
-            scheme='category10')
+            interpolate='linear')
         st.altair_chart(line_chart)
 
         # tests and exit
@@ -358,6 +369,7 @@ def main():
 
     # region
     elif page == paginator[7]:
+        st.sidebar.header(paginator[7])
         line_chart = buildchart('Калининград и регионы', 
             data[['дата', 'Калининград', 'все кроме Калининграда']], 
             height=400,
@@ -377,10 +389,12 @@ def main():
 
     # age and prophesy
     elif page == paginator[8]:
-        pass
+        st.sidebar.header(paginator[8])
+        st.text('soon...')
 
-    elif page == 'Корреляции (долгая загрузка)':
-        st.subheader('Корреляции')
+    elif page == 'Корреляции':
+        st.sidebar.header('Корреляции')
+        st.text('soon...')
         # report = ProfileReport(data.drop(['учебные учреждения'], axis=1))
         # st_profile_report(report)
 
