@@ -248,7 +248,7 @@ def main():
     
     # cases
     elif page == paginator[1]:
-        st.sidebar.header(paginator[1])
+        st.header(paginator[1])        
 
         # cases
         line_chart = buildchart(paginator[1], 
@@ -273,7 +273,8 @@ def main():
 
     # ir
     elif page == paginator[2]:
-        st.sidebar.header(paginator[2])
+        st.header(paginator[2])
+
         line_chart = buildchart(paginator[2], 
                             data[['дата', 'infection rate']], 
                             interpolate='linear', 
@@ -284,7 +285,9 @@ def main():
 
     # death
     elif page == paginator[3]:
-        st.sidebar.header(paginator[3])
+        st.header(paginator[3])
+        st.markdown('Информация орб умерших в палатах, отведенных для больных для больных пневмонией и covid получена по запросу newkalingrad.ru')
+
         line_chart = buildchart('умерли от ковид', 
             data[['дата', 'умерли от ковид']], 
             height=400, 
@@ -294,7 +297,7 @@ def main():
         st.altair_chart(line_chart)
 
         # cumsum 
-        line_chart = buildchart('Смертельные случаи кумулятивно', 
+        line_chart = buildchart('смертельные случаи нарастающим итогом', 
             data[['дата', 'кумул.умерли']], 
             height=400,
             interpolate='linear',
@@ -313,15 +316,17 @@ def main():
 
     # exit
     elif page == paginator[4]:
-        st.sidebar.header(paginator[4])
-        line_chart = buildchart('выписали', 
+        st.header(paginator[4])
+        st.markdown('Нет достоверной информации о том, что лечение выписанных больных в действительности закончено')
+
+        line_chart = buildchart('Выписаны', 
             data[['дата', 'всего', 'выписали']], 
             interpolate='linear',
             scheme='set1')
         st.altair_chart(line_chart)
 
         # cumsum 
-        line_chart = buildchart('Выписаны из больниц кумулятивно', 
+        line_chart = buildchart('Выписаны из больниц нарастающим итогом', 
             data[['дата', 'кумул. случаи', 'кумул.выписаны']], 
             height=400,
             interpolate='linear',
@@ -331,9 +336,11 @@ def main():
 
     # systen capacity
     elif page == paginator[5]:
-        st.sidebar.header(paginator[5])
+        st.header(paginator[5])
+        st.markdown('Активные случаи считаются как заразившиеся минус выписанные и умершие. Болеют ли эти люди в действительности установить невозможно. Данные о закгруженности больниц предоставлены мед.службами.')
+
         # cumsum minus exit
-        line_chart = buildchart('Активные случаи кумулятивно', 
+        line_chart = buildchart('Активные случаи нарастающим итогом', 
             data[['дата', 'кумул.активные']], 
             height=400,
             interpolate='linear',
@@ -356,7 +363,9 @@ def main():
 
     # tests
     elif page == paginator[6]:
-        st.sidebar.header(paginator[6])
+        st.header(paginator[6])
+        st.markdown('Для наглядности, количество тестов разделено на 10 для приведенных графиков.')
+
         line_chart = buildchart('Общее количество тестов', 
             data[['дата', 'кол-во тестов']], 
             height=600,
@@ -365,7 +374,7 @@ def main():
         st.altair_chart(line_chart)
 
         # tesats and cases
-        line_chart = buildchart('Общее количество тестов', 
+        line_chart = buildchart('Тестирование и распространение болезни', 
             data[['дата', 'ОРВИ', 'пневмония', 'без симптомов', 'кол-во тестов / 10']], 
             height=500,
             interpolate='linear')
@@ -381,7 +390,8 @@ def main():
 
     # region
     elif page == paginator[7]:
-        st.sidebar.header(paginator[7])
+        st.header(paginator[7])
+
         line_chart = buildchart('Калининград и регионы', 
             data[['дата', 'Калининград', 'все кроме Калининграда']], 
             height=400,
@@ -401,11 +411,11 @@ def main():
 
     # age and prophesy
     elif page == paginator[8]:
-        st.sidebar.header(paginator[8])
+        st.header(paginator[8])
         st.text('soon...')
 
     elif page == 'Корреляции':
-        st.sidebar.header('Корреляции')
+        st.header('Корреляции')
         st.text('soon...')
         # report = ProfileReport(data.drop(['учебные учреждения'], axis=1))
         # st_profile_report(report)
