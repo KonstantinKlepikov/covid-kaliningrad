@@ -4,7 +4,7 @@ import pandas as pd
 import altair as alt
 import os
 
-__version__ = '1.2'
+__version__ = '1.2.1'
 
 
 def buildchart(title, data, type_='quantitative', interpolate='step', height=600, width=800, level=False, poly=False, tchart='linear', point=False, empty=False, scheme='category10'):
@@ -232,18 +232,21 @@ def main():
     st.sidebar.markdown('Общая летальность: **{let}%**'.format_map(vars()))
     st.sidebar.markdown('Выписано: **{ex}**'.format_map(vars()))
 
-    page = st.sidebar.radio('Данные', paginator)
+    page = st.radio('Данные', paginator)
 
     if page == paginator[0]:
         st.header(paginator[0])
         st.subheader('Описание проекта')
-        st.markdown('Проект работает с открытыми данными, собранными из различных официальных источников. Актуальность информации зависит от скорости обновления таблицы и источника агрегации и может составлять от 15 минут до 8 часов с момента публикации. Предсталеные визуализированные данные не являются точными и не могут отражать истинную картину распространения covid-19 в Калининградской области. Автор проекта агрегирует данные с образовательной целью и не несет ответственности за их достоверность. Весь контент и код проекта предоставляется по [MIT лицензии](https://ru.wikipedia.org/wiki/%D0%9B%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F_MIT).')
+        st.markdown('Проект работает с открытыми данными, собранными из различных официальных источников. Актуальность информации зависит от скорости обновления таблицы и источника агрегации и может составлять от 15 минут до 8 часов с момента публикации. Предсталеные визуализированные данные не являются точными и не могут отражать истинную картину распространения covid-19 в Калининградской области. Автор проекта агрегирует данные с образовательной целью и не несет ответственности за их достоверность. Весь контент и код проекта предоставляется по [MIT лицензии](https://github.com/KonstantinKlepikov/covid-kaliningrad).')
 
         st.subheader('Как это сделано?')
-        st.markdown('[статья о том, как собрана это приложение](https://konstantinklepikov.github.io/2021/01/10/zapuskaem-machine-learning-mvp.html)')
+        st.markdown('[Статья о том, как собрано это приложение](https://konstantinklepikov.github.io/2021/01/10/zapuskaem-machine-learning-mvp.html)')
+        st.markdown('[Репозиторий проекта](https://github.com/KonstantinKlepikov/covid-kaliningrad)')
+        st.markdown('[Данные](https://docs.google.com/spreadsheets/d/1iAgNVDOUa-g22_VcuEAedR2tcfTlUcbFnXV5fMiqCR8/edit#gid=1038226408)')
 
         st.subheader('Изменения в версиях')
-        st.markdown('**v1.1** Добавлена обработка данных и вывод основных визуализаций')
+        st.markdown('**v1.2.1** Улушено отображение на мобильных устройствах.')
+        st.markdown('**v1.1** Добавлена обработка данных и вывод основных визуализаций.')
 
         st.subheader('Контакты')
         st.markdown('[Мой блог про machine learning](https://konstantinklepikov.github.io/)')
