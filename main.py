@@ -232,21 +232,25 @@ def main():
     st.sidebar.markdown('Общая летальность: **{}%**'.format(ds['let']))
     st.sidebar.markdown('Выписано: **{}**'.format(ds['ex']))
 
-    paginator = ['Введение', 
-            'Динамика заражения', 
-            'Infection Rate', 
-            'Данные об умерших', 
-            'Данные о выписке', 
-            'Нагрузка на систему', 
-            'Тестирование', 
-            'Регионы',
-            'Демография',
-            'Корреляции']
+    p = {'intro': 'Введение',
+        'cases': 'Динамика заражения', 
+        'infection rate': 'Infection Rate', 
+        'deaths': 'Данные об умерших', 
+        'exits': 'Данные о выписке', 
+        'capacity': 'Нагрузка на систему', 
+        'tests': 'Тестирование', 
+        'regions': 'Регионы',
+        'demographics': 'Демография',
+        'correlations': 'Корреляции'
+        }
+
+    paginator = [n for n in p.keys()]
 
     page = st.radio('Данные', paginator)
 
-    if page == paginator[0]:
-        st.header(paginator[0])
+    if page == 'intro':
+        st.header(p[page])
+
         st.subheader('Описание проекта')
         st.markdown('Проект работает с открытыми данными, собранными из различных официальных источников. Актуальность информации зависит от скорости обновления таблицы и источника агрегации и может составлять от 15 минут до 8 часов с момента публикации. Предсталеные визуализированные данные не являются точными и не могут отражать истинную картину распространения covid-19 в Калининградской области. Автор проекта агрегирует данные с образовательной целью и не несет ответственности за их достоверность. Весь контент и код проекта предоставляется по [MIT лицензии](https://opensource.org/licenses/mit-license.php).')
 
@@ -266,9 +270,8 @@ def main():
         st.markdown('[Телеграм](https://t.me/KlepikovKonstantin)')
         st.markdown('[Фейсбук](https://facebook.com/konstatin.klepikov)')
     
-    # cases
-    elif page == paginator[1]:
-        st.header(paginator[1])
+    elif page == 'cases':
+        st.header(p[page])
 
         # cases
         line_chart = buildchart(paginator[1], 
@@ -291,9 +294,8 @@ def main():
                             scheme='set1')
         st.altair_chart(line_chart)
 
-    # ir
-    elif page == paginator[2]:
-        st.header(paginator[2])
+    elif page == 'infection rate':
+        st.header(p[page])
 
         line_chart = buildchart(paginator[2], 
                             data[['дата', 'infection rate']], 
@@ -303,9 +305,8 @@ def main():
                             scheme='set1')
         st.altair_chart(line_chart)
 
-    # death
-    elif page == paginator[3]:
-        st.header(paginator[3])
+    elif page == 'deaths':
+        st.header(p[page])
 
         line_chart = buildchart('умерли от ковид', 
             data[['дата', 'умерли от ковид']], 
@@ -335,9 +336,9 @@ def main():
             empty=True)
         st.altair_chart(line_chart1)
 
-    # exit
-    elif page == paginator[4]:
-        st.header(paginator[4])
+    elif page == 'exits':
+        st.header(p[page])
+
         st.markdown('Нет достоверной информации о том, что лечение выписанных больных в действительности закончено')
 
         line_chart = buildchart('Выписаны', 
@@ -355,8 +356,9 @@ def main():
             scheme='set1')
         st.altair_chart(line_chart)
 
-    # systen capacity
-    elif page == paginator[5]:
+    elif page == 'capacity':
+        st.header(p[page])
+
         st.header(paginator[5])
         st.markdown('Активные случаи - это заразившиеся минус выписанные и умершие. Болеют ли эти люди в текущий момент на самом деле установить невозможно. Данные о загруженности больниц предоставлены мед.службами.')
 
@@ -382,9 +384,8 @@ def main():
             empty=True)
         st.altair_chart(line_chart)
 
-    # tests
-    elif page == paginator[6]:
-        st.header(paginator[6])
+    elif page == 'tests':
+        st.header(p[page])
 
         line_chart = buildchart('Общее количество тестов', 
             data[['дата', 'кол-во тестов']], 
@@ -410,8 +411,9 @@ def main():
             scheme='set1')
         st.altair_chart(line_chart)
 
-    # region
-    elif page == paginator[7]:
+    elif page == 'regions':
+        st.header(p[page])
+
         st.header(paginator[7])
 
         line_chart = buildchart('Калининград и регионы', 
@@ -431,13 +433,14 @@ def main():
             scheme='tableau20')
         st.altair_chart(line_chart)
 
-    # age and prophesy
-    elif page == paginator[8]:
-        st.header(paginator[8])
+    elif page == 'demographics':
+        st.header(p[page])
+
         st.text('soon...')
 
-    elif page == 'Корреляции':
-        st.header('Корреляции')
+    elif page == 'correlations':
+        st.header(p[page])
+
         st.text('soon...')
         # report = ProfileReport(data.drop(['учебные учреждения'], axis=1))
         # st_profile_report(report)
