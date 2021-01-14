@@ -201,43 +201,54 @@ def buildchart(title, data, type_='quantitative', interpolate='step', height=600
     else:
         return upper & lower
 
+@st.cache(ttl=180.)
+def dataloader(url):
+    return pd.read_csv(url)
+
+@st.cache(suppress_st_warning=True, ttl=180.)
+def asidedata(data, people=1012512):
+    ds = {}
+    ds['sick'] = data['всего'].sum()
+    ds['proc'] = round(ds['sick'] * 100 / people, 2)
+    ds['dead'] = data['умерли от ковид'].sum()
+    ds['let'] = round(ds['dead'] * 100 / ds['sick'], 2)
+    ds['ex'] = data['выписали'].sum()
+
+    return ds
+
 
 def main():
 
     st.sidebar.title('Данные о covid-19 в Калининградской области')
     st.sidebar.text('v' + __version__)
 
-    data = pd.read_csv('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/data.csv')
+    data = dataloader('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/data.csv')
+
+    ds = asidedata(data)
+
+    st.sidebar.markdown('Всего заболело: **{}**'.format(ds['sick']))
+    st.sidebar.markdown('От всего населения: **{}%**'.format(ds['proc']))
+    st.sidebar.markdown('Официально умерло: **{}**'.format(ds['dead']))
+    st.sidebar.markdown('Общая летальность: **{}%**'.format(ds['let']))
+    st.sidebar.markdown('Выписано: **{}**'.format(ds['ex']))
+
     paginator = ['Введение', 
-                'Динамика заражения', 
-                'Infection Rate', 
-                'Данные об умерших', 
-                'Данные о выписке', 
-                'Нагрузка на систему', 
-                'Тестирование', 
-                'Регионы',
-                'Демография',
-                'Корреляции']
-
-    people = 1012512
-    sick = data['всего'].sum()
-    proc = round(sick * 100 / people, 2)
-    dead = data['умерли от ковид'].sum()
-    let = round(dead * 100 / sick, 2)
-    ex = data['выписали'].sum()
-
-    st.sidebar.markdown('Всего заболело: **{sick}**'.format_map(vars()))
-    st.sidebar.markdown('От всего населения: **{proc}%**'.format_map(vars()))
-    st.sidebar.markdown('Официально умерло: **{dead}**'.format_map(vars()))
-    st.sidebar.markdown('Общая летальность: **{let}%**'.format_map(vars()))
-    st.sidebar.markdown('Выписано: **{ex}**'.format_map(vars()))
+            'Динамика заражения', 
+            'Infection Rate', 
+            'Данные об умерших', 
+            'Данные о выписке', 
+            'Нагрузка на систему', 
+            'Тестирование', 
+            'Регионы',
+            'Демография',
+            'Корреляции']
 
     page = st.radio('Данные', paginator)
 
     if page == paginator[0]:
         st.header(paginator[0])
         st.subheader('Описание проекта')
-        st.markdown('Проект работает с открытыми данными, собранными из различных официальных источников. Актуальность информации зависит от скорости обновления таблицы и источника агрегации и может составлять от 15 минут до 8 часов с момента публикации. Предсталеные визуализированные данные не являются точными и не могут отражать истинную картину распространения covid-19 в Калининградской области. Автор проекта агрегирует данные с образовательной целью и не несет ответственности за их достоверность. Весь контент и код проекта предоставляется по [MIT лицензии](https://github.com/KonstantinKlepikov/covid-kaliningrad).')
+        st.markdown('Проект работает с открытыми данными, собранными из различных официальных источников. Актуальность информации зависит от скорости обновления таблицы и источника агрегации и может составлять от 15 минут до 8 часов с момента публикации. Предсталеные визуализированные данные не являются точными и не могут отражать истинную картину распространения covid-19 в Калининградской области. Автор проекта агрегирует данные с образовательной целью и не несет ответственности за их достоверность. Весь контент и код проекта предоставляется по [MIT лицензии](https://opensource.org/licenses/mit-license.php).')
 
         st.subheader('Как это сделано?')
         st.markdown('[Статья о том, как собрано это приложение](https://konstantinklepikov.github.io/2021/01/10/zapuskaem-machine-learning-mvp.html)')
