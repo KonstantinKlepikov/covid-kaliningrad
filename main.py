@@ -241,15 +241,17 @@ def pagemaker():
     return p, paginator
 
 
-def main():
-    hide_streamlit_style = """
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    </style>
+def main(hidemenu=True):
 
-    """
-    st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
+    if hidemenu:
+        hide_streamlit_style = """
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        </style>
+
+        """
+        st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
     st.sidebar.title('Данные о covid-19 в Калининградской области')
     st.sidebar.text('v' + __version__)
