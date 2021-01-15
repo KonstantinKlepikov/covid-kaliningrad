@@ -345,7 +345,6 @@ def main(hidemenu=True):
         ch = Linear(
             'Infection Rate 7 days', 
             data[['дата', 'IR7']], 
-            scheme='set1',
             level=1
             )
         ch.draw()
