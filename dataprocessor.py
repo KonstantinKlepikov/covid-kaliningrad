@@ -16,6 +16,40 @@ def main():
     for sheet_name in sheets:
         loaded[sheet_name] = dl.loader(file_id, file_url, sheet_name)
 
+<<<<<<< HEAD
+=======
+    # data
+    loaded['data'].fillna(0, inplace=True)
+    loaded['data']['infection rate'] = loaded['data']['infection rate'].apply(lambda x: str(x))
+    loaded['data']['IR7'] = loaded['data']['IR7'].apply(lambda x: str(x))
+    loaded['data']['infection rate'] = loaded['data']['infection rate'].apply(lambda x: x.replace(',', '.'))
+    loaded['data']['IR7'] = loaded['data']['IR7'].apply(lambda x: x.replace(',', '.'))
+    loaded['data']['кумул. случаи'] = loaded['data']['всего'].cumsum()
+    loaded['data']['кумул.умерли'] = loaded['data']['умерли от ковид'].cumsum()
+    loaded['data']['кумул.выписаны'] = loaded['data']['выписали'].cumsum()
+    loaded['data']['кумул.активные'] = loaded['data']['кумул. случаи'].sub(loaded['data']['кумул.выписаны']).sub(loaded['data']['кумул.умерли'])
+    loaded['data']['кол-во тестов / 10'] = loaded['data']['кол-во тестов'] / 10
+    loaded['data']['все кроме Калининграда'] = loaded['data'].filter(regex='округ').sum(axis=1)
+    loaded['data'].drop(['учебные учреждения'], axis=1, inplace=True)
+    loaded['data']['infection rate'] = loaded['data']['infection rate'].astype(np.float16) 
+    loaded['data']['IR7'] = loaded['data']['IR7'].astype(np.float16)
+    for i in loaded['data'].columns.difference(['дата', 'infection rate', 'IR7', 'кол-во тестов / 10']):
+        loaded['data'][i] = loaded['data'][i].astype(np.int16)
+    loaded['data'].to_csv(pathMaker('data'), index=False)
+
+    # destrib
+    loaded['destrib'].fillna(0, inplace=True)
+    for i in loaded['destrib'].columns.difference(['дата']):
+        loaded['destrib'][i] = loaded['destrib'][i].astype(np.int8)
+    loaded['destrib'].to_csv(pathMaker('destrib'), index=False)
+
+    # rosstat
+    loaded['rosstat'].fillna(0, inplace=True)
+    for i in loaded['rosstat'].columns.difference(['Месяц']):
+        loaded['rosstat'][i] = loaded['rosstat'][i].astype(np.int16)
+    loaded['rosstat'].to_csv(pathMaker('rosstat'), index=False)
+    
+>>>>>>> f628979... typo
 
     # table data preparing
     data = loaded['data']
