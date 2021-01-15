@@ -17,7 +17,6 @@ def main():
         loaded[sheet_name] = dl.loader(file_id, file_url, sheet_name)
 
 
-
     # table data preparing
     data = loaded['data']
 
