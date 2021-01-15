@@ -32,8 +32,10 @@ def main():
 
     # data
     loaded['data'].fillna(0, inplace=True)
-    loaded['data'][['infection rate', 'IR7']] = loaded['data'][['infection rate', 'IR7']].apply(lambda x: str(x))
-    loaded['data'][['infection rate', 'IR7']] = loaded['data'][['infection rate', 'IR7']].apply(lambda x: x.replace(',', '.'))
+    loaded['data']['infection rate'] = loaded['data']['infection rate'].apply(lambda x: str(x))
+    loaded['data']['IR7'] = loaded['data']['IR7'].apply(lambda x: str(x))
+    loaded['data']['infection rate'] = loaded['data']['infection rate'].apply(lambda x: x.replace(',', '.'))
+    loaded['data']['IR7'] = loaded['data']['IR7'].apply(lambda x: x.replace(',', '.'))
     loaded['data']['кумул. случаи'] = loaded['data']['всего'].cumsum()
     loaded['data']['кумул.умерли'] = loaded['data']['умерли от ковид'].cumsum()
     loaded['data']['кумул.выписаны'] = loaded['data']['выписали'].cumsum()
