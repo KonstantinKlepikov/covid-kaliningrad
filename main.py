@@ -344,7 +344,7 @@ def main(hidemenu=True):
         # ir7
         ch = Linear(
             'Infection Rate 7 days', 
-            data[['дата', 'IR7]], 
+            data[['дата', 'IR7']], 
             scheme='set1',
             level=1
             )
