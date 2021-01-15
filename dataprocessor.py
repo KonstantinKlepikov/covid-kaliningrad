@@ -33,7 +33,9 @@ def main():
     # data
     loaded['data'].fillna(0, inplace=True)
     loaded['data']['infection rate'] = loaded['data']['infection rate'].apply(lambda x: str(x))
+    loaded['data']['IR7'] = loaded['data']['IR7'].apply(lambda x: str(x))
     loaded['data']['infection rate'] = loaded['data']['infection rate'].apply(lambda x: x.replace(',', '.'))
+    loaded['data']['IR7'] = loaded['data']['IR7'].apply(lambda x: x.replace(',', '.'))
     loaded['data']['кумул. случаи'] = loaded['data']['всего'].cumsum()
     loaded['data']['кумул.умерли'] = loaded['data']['умерли от ковид'].cumsum()
     loaded['data']['кумул.выписаны'] = loaded['data']['выписали'].cumsum()
@@ -42,7 +44,8 @@ def main():
     loaded['data']['все кроме Калининграда'] = loaded['data'].filter(regex='округ').sum(axis=1)
     loaded['data'].drop(['учебные учреждения'], axis=1, inplace=True)
     loaded['data']['infection rate'] = loaded['data']['infection rate'].astype(np.float16) 
-    for i in loaded['data'].columns.difference(['дата', 'infection rate', 'кол-во тестов / 10']):
+    loaded['data']['IR7'] = loaded['data']['IR7'].astype(np.float16)
+    for i in loaded['data'].columns.difference(['дата', 'infection rate', 'IR7', 'кол-во тестов / 10']):
         loaded['data'][i] = loaded['data'][i].astype(np.int16)
     loaded['data'].to_csv(pathMaker('data'), index=False)
 

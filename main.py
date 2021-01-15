@@ -5,7 +5,7 @@ import altair as alt
 from abc import ABC, abstractmethod
 import os
 
-__version__ = '1.2.1'
+__version__ = '1.2.3'
 
 
 class DrawChart(ABC):
@@ -196,23 +196,26 @@ class Linear(DrawChart):
 
     def draw(self):
         self.draw = alt.Chart(self.data).mark_line(interpolate=self.interpolate, point=self.point)
+        self.select()
 
 class Point(DrawChart):
 
     def draw(self):
         self.draw = alt.Chart(self.data).mark_point(interpolate=self.interpolate)
+        self.select()
 
 class Area(DrawChart):
 
     def draw(self):
         self.draw = alt.Chart(self.data).mark_area(interpolate=self.interpolate)
+        self.select()
 
 
-@st.cache(ttl=180.)
+@st.cache(ttl=450.)
 def dataloader(url):
     return pd.read_csv(url)
 
-@st.cache(suppress_st_warning=True, ttl=180.)
+@st.cache(suppress_st_warning=True, ttl=450.)
 def asidedata(data, people=1012512):
     ds = {}
     ds['sick'] = data['всего'].sum()
@@ -241,15 +244,17 @@ def pagemaker():
     return p, paginator
 
 
-def main():
-    hide_streamlit_style = """
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    </style>
+def main(hidemenu=True):
 
-    """
-    st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
+    if hidemenu:
+        hide_streamlit_style = """
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        </style>
+
+        """
+        st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
     st.sidebar.title('Данные о covid-19 в Калининградской области')
     st.sidebar.text('v' + __version__)
@@ -299,7 +304,6 @@ def main():
             data[['дата', 'всего', 'ОРВИ', 'пневмония', 'без симптомов']]
             )
         ch.draw()
-        ch.select()
         ch.richchart()
         st.altair_chart(ch.selectionchart())
 
@@ -309,7 +313,6 @@ def main():
             data[['дата', 'ОРВИ', 'пневмония', 'без симптомов']]
             )
         ch.draw()
-        ch.select()
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
@@ -321,7 +324,6 @@ def main():
             scheme='set1'
             )
         ch.draw()
-        ch.select()
         ch.richchart()
         st.altair_chart(ch.emptychart())
 
@@ -336,7 +338,16 @@ def main():
             level=1
             )
         ch.draw()
-        ch.select()
+        ch.richchart()
+        st.altair_chart(ch.baselinechart())
+
+        # ir7
+        ch = Linear(
+            'Infection Rate 7 days', 
+            data[['дата', 'IR7']], 
+            level=1
+            )
+        ch.draw()
         ch.richchart()
         st.altair_chart(ch.baselinechart())
 
@@ -352,7 +363,6 @@ def main():
             poly=7,
             )
         ch.draw()
-        ch.select()
         ch.leanchart()
         st.altair_chart(ch.polynomialchart())
 
@@ -364,7 +374,6 @@ def main():
             scheme='set1'
             )
         ch.draw()
-        ch.select()
         ch.richchart()
         st.altair_chart(ch.emptychart())
 
@@ -378,7 +387,6 @@ def main():
             scheme='set1'
             )
         ch.draw()
-        ch.select()
         ch.richchart()
         st.altair_chart(ch.emptychart())
 
@@ -393,7 +401,6 @@ def main():
             scheme='set1'
             )
         ch.draw()
-        ch.select()
         ch.richchart()
         st.altair_chart(ch.selectionchart())
 
@@ -405,7 +412,6 @@ def main():
             scheme='set1'
             )
         ch.draw()
-        ch.select()
         ch.richchart()
         st.altair_chart(ch.emptychart())
 
@@ -421,7 +427,6 @@ def main():
             scheme='set1'
             )
         ch.draw()
-        ch.select()
         ch.richchart()
         st.altair_chart(ch.emptychart())
 
@@ -437,7 +442,6 @@ def main():
             point=True 
             )
         ch.draw()
-        ch.select()
         ch.richchart()
         st.altair_chart(ch.emptychart())
 
@@ -451,7 +455,6 @@ def main():
             scheme='accent'
             )
         ch.draw()
-        ch.select()
         ch.richchart()
         st.altair_chart(ch.selectionchart())
 
@@ -463,7 +466,6 @@ def main():
             height=500
             )
         ch.draw()
-        ch.select()
         ch.richchart()
         st.altair_chart(ch.selectionchart())
 
@@ -475,7 +477,6 @@ def main():
             scheme='set1'
             )
         ch.draw()
-        ch.select()
         ch.richchart()
         st.altair_chart(ch.selectionchart())
 
@@ -491,7 +492,6 @@ def main():
             scheme='set1'
             )
         ch.draw()
-        ch.select()
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
@@ -506,7 +506,6 @@ def main():
             scheme='tableau20'
             )
         ch.draw()
-        ch.select()
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
