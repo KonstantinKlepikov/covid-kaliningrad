@@ -224,6 +224,7 @@ def asidedata(data, people=1012512):
     ds['dead'] = data['умерли от ковид'].sum()
     ds['let'] = round(ds['dead'] * 100 / ds['sick'], 2)
     ds['ex'] = data['выписали'].sum()
+    ds['update'] = data['дата'].iloc[-1]
 
     return ds
 
@@ -304,8 +305,9 @@ def main(hidemenu=True):
 
     high, low = irDestrib(data)
 
-    st.sidebar.markdown('Всего заболело: **{}**'.format(ds['sick']))
-    st.sidebar.markdown('От всего населения: **{}%**'.format(ds['proc']))
+    st.sidebar.markdown('Обновлено: {}'.format(ds['update']))
+    st.sidebar.markdown('Всего выявлено: **{}**'.format(ds['sick']))
+    st.sidebar.markdown('От населения области: **{}%**'.format(ds['proc']))
     st.sidebar.markdown('Официально умерло: **{}**'.format(ds['dead']))
     st.sidebar.markdown('Общая летальность: **{}%**'.format(ds['let']))
     st.sidebar.markdown('Выписано: **{}**'.format(ds['ex']))
