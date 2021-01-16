@@ -267,22 +267,6 @@ def irDestrib(data):
     low = df[df['infection rate'] < 1].shape[0]
     return high, low
 
-# @st.cache(ttl=900.)
-# def irDinam(data):
-#     df = data[['дата', 'infection rate']]
-#     df['plus'] = df[df['infection rate'] >= 1]['infection rate']
-#     df['minus'] = df[df['infection rate'] < 1]['infection rate']
-#     df.drop(['infection rate'], axis=1, inplace=True)
-#     df['plus'] = df['plus'].mask(df['plus'] >= 0, 1)
-#     df['minus'] = df['minus'].mask(df['minus'] >= 0, 1)
-#     df['plus'] = df['plus'].cumsum()
-#     df['minus'] = df['minus'].cumsum()
-#     df.fillna(method='ffill', inplace=True)
-#     df['отношение'] = df['plus'] / df['minus']
-#     df.drop(['plus', 'minus'], axis=1, inplace=True)
-#     df['отношение'] = df['отношение'].apply(lambda x: round(x, 2))
-#     return df
-
 
 def main(hidemenu=True):
 
@@ -398,7 +382,6 @@ def main(hidemenu=True):
         st.altair_chart(ch.baselinechart())
 
         # ir difference
-        # dfir = irDinam(data)
         ch = Linear(
             'Распределение отношения количества дней с положительным ir4 к количеству дней с отрицательным ir4', 
             data['отношение'], 
