@@ -224,6 +224,7 @@ def asidedata(data, people=1012512):
     ds['dead'] = data['умерли от ковид'].sum()
     ds['let'] = round(ds['dead'] * 100 / ds['sick'], 2)
     ds['ex'] = data['выписали'].sum()
+    ds['update'] = data['дата'].iloc[-1]
 
     return ds
 
@@ -266,22 +267,6 @@ def irDestrib(data):
     low = df[df['infection rate'] < 1].shape[0]
     return high, low
 
-@st.cache(ttl=900.)
-def irDinam(data):
-    df = data[['дата', 'infection rate']]
-    df['plus'] = df[df['infection rate'] >= 1]['infection rate']
-    df['minus'] = df[df['infection rate'] < 1]['infection rate']
-    df.drop(['infection rate'], axis=1, inplace=True)
-    df['plus'] = df['plus'].mask(df['plus'] >= 0, 1)
-    df['minus'] = df['minus'].mask(df['minus'] >= 0, 1)
-    df['plus'] = df['plus'].cumsum()
-    df['minus'] = df['minus'].cumsum()
-    df.fillna(method='ffill', inplace=True)
-    df['отношение'] = df['plus'] / df['minus']
-    df.drop(['plus', 'minus'], axis=1, inplace=True)
-    df['отношение'] = df['отношение'].apply(lambda x: round(x, 2))
-    return df
-
 
 def main(hidemenu=True):
 
@@ -304,8 +289,9 @@ def main(hidemenu=True):
 
     high, low = irDestrib(data)
 
-    st.sidebar.markdown('Всего заболело: **{}**'.format(ds['sick']))
-    st.sidebar.markdown('От всего населения: **{}%**'.format(ds['proc']))
+    st.sidebar.markdown('Обновлено: {}'.format(ds['update']))
+    st.sidebar.markdown('Всего выявлено: **{}**'.format(ds['sick']))
+    st.sidebar.markdown('От населения области: **{}%**'.format(ds['proc']))
     st.sidebar.markdown('Официально умерло: **{}**'.format(ds['dead']))
     st.sidebar.markdown('Общая летальность: **{}%**'.format(ds['let']))
     st.sidebar.markdown('Выписано: **{}**'.format(ds['ex']))
@@ -396,10 +382,9 @@ def main(hidemenu=True):
         st.altair_chart(ch.baselinechart())
 
         # ir difference
-        dfir = irDinam(data)
         ch = Linear(
             'Распределение отношения количества дней с положительным ir4 к количеству дней с отрицательным ir4', 
-            dfir, 
+            data['отношение'], 
             level=1
             )
         ch.draw()
