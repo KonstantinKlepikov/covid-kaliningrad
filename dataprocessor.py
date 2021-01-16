@@ -97,5 +97,13 @@ def main():
         rosstat[i] = rosstat[i].astype(np.int16)
     rosstat.to_csv(pathMaker('rosstat'), index=False)
 
+<<<<<<< HEAD
 
 main()
+=======
+<<<<<<< HEAD
+main()
+=======
+    main()
+>>>>>>> 7653b4a... rebase
+>>>>>>> a581f14... rebase
