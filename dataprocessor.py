@@ -84,6 +84,6 @@ def main():
     for i in rosstat.columns.difference(['Месяц']):
         rosstat[i] = rosstat[i].astype(np.int16)
     rosstat.to_csv(dl.pathMaker('rosstat'), index=False)
-    
+
 
 main()
