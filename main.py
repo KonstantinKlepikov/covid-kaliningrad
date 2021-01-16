@@ -5,7 +5,8 @@ import altair as alt
 from abc import ABC, abstractmethod
 import os
 
-__version__ = '1.2.3'
+
+__version__ = '1.2.4'
 
 
 class DrawChart(ABC):
@@ -211,11 +212,11 @@ class Area(DrawChart):
         self.select()
 
 
-@st.cache(ttl=450.)
+@st.cache(ttl=900.)
 def dataloader(url):
     return pd.read_csv(url)
 
-@st.cache(suppress_st_warning=True, ttl=450.)
+@st.cache(suppress_st_warning=True, ttl=900.)
 def asidedata(data, people=1012512):
     ds = {}
     ds['sick'] = data['всего'].sum()
@@ -243,6 +244,44 @@ def pagemaker():
 
     return p, paginator
 
+@st.cache(ttl=900.)
+def regDistr(data):
+    _cols = [col for col in data.columns if 'округ' in col]
+    _cols.append('дата')
+    _cols.append('Калининград')
+    return _cols
+
+@st.cache(ttl=900.)
+def hospitalPlaces(data):
+    df = data[['дата', 'доступно под ковид', 'занято под ковид', 'доступно ИВЛ', 'занято ИВЛ', 'доступно под ковид и пневмонию', 'занято под ковид и пневмонию']].query("'2020-11-01' <= дата ")
+    df.set_index('дата', inplace=True)
+    df = df[(df.T != 0).any()]
+    df.reset_index(inplace=True)
+    return df
+
+@st.cache(ttl=900.)
+def irDestrib(data):
+    df = data[['дата', 'infection rate']]
+    high = df[df['infection rate'] >= 1].shape[0]
+    low = df[df['infection rate'] < 1].shape[0]
+    return high, low
+
+@st.cache(ttl=900.)
+def irDinam(data):
+    df = data[['дата', 'infection rate']]
+    df['plus'] = df[df['infection rate'] >= 1]['infection rate']
+    df['minus'] = df[df['infection rate'] < 1]['infection rate']
+    df.drop(['infection rate'], axis=1, inplace=True)
+    df['plus'] = df['plus'].mask(df['plus'] >= 0, 1)
+    df['minus'] = df['minus'].mask(df['minus'] >= 0, 1)
+    df['plus'] = df['plus'].cumsum()
+    df['minus'] = df['minus'].cumsum()
+    df.fillna(method='ffill', inplace=True)
+    df['отношение'] = df['plus'] / df['minus']
+    df.drop(['plus', 'minus'], axis=1, inplace=True)
+    df['отношение'] = df['отношение'].apply(lambda x: round(x, 2))
+    return df
+
 
 def main(hidemenu=True):
 
@@ -263,11 +302,15 @@ def main(hidemenu=True):
 
     ds = asidedata(data)
 
+    high, low = irDestrib(data)
+
     st.sidebar.markdown('Всего заболело: **{}**'.format(ds['sick']))
     st.sidebar.markdown('От всего населения: **{}%**'.format(ds['proc']))
     st.sidebar.markdown('Официально умерло: **{}**'.format(ds['dead']))
     st.sidebar.markdown('Общая летальность: **{}%**'.format(ds['let']))
     st.sidebar.markdown('Выписано: **{}**'.format(ds['ex']))
+    st.sidebar.markdown('IR4 >= 1 дней: **{}**'.format(high))
+    st.sidebar.markdown('IR4 < 1 дней: **{}**'.format(low))
 
     p, paginator = pagemaker()
 
@@ -285,7 +328,7 @@ def main(hidemenu=True):
         st.markdown('[Данные](https://docs.google.com/spreadsheets/d/1iAgNVDOUa-g22_VcuEAedR2tcfTlUcbFnXV5fMiqCR8/edit#gid=1038226408)')
 
         st.subheader('Изменения в версиях')
-        st.markdown('**v1.2.1** Улушено отображение на мобильных устройствах. Оптимизирована скорость загрузки страницы.')
+        st.markdown('**v1.2.4** Улушено отображение на мобильных устройствах. Оптимизирована скорость загрузки страницы. Добавлены IR7 и распределение IR')
         st.markdown('**v1.1** Добавлена обработка данных и вывод основных визуализаций.')
 
         st.subheader('Контакты')
@@ -331,8 +374,9 @@ def main(hidemenu=True):
         st.header(p[page])
 
         # ir4
+        st.markdown('IR4 расчитывается по методике РосПотребНадзора - как отношение количества заболевших за прошедшие 4 дня к количеству заболевших за предыдущие прошедшие 4 дня.')
         ch = Linear(
-            p[page], 
+            'Infection Rate 4 days', 
             data[['дата', 'infection rate']], 
             scheme='set1',
             level=1
@@ -345,6 +389,17 @@ def main(hidemenu=True):
         ch = Linear(
             'Infection Rate 7 days', 
             data[['дата', 'IR7']], 
+            level=1
+            )
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.baselinechart())
+
+        # ir difference
+        dfir = irDinam(data)
+        ch = Linear(
+            'Распределение отношения количества дней с положительным ir4 к количеству дней с отрицательным ir4', 
+            dfir, 
             level=1
             )
         ch.draw()
@@ -431,10 +486,7 @@ def main(hidemenu=True):
         st.altair_chart(ch.emptychart())
 
         # hospital places
-        df = data[['дата', 'доступно под ковид', 'занято под ковид', 'доступно ИВЛ', 'занято ИВЛ', 'доступно под ковид и пневмонию', 'занято под ковид и пневмонию']].query("'2020-11-01' <= дата ")
-        df.set_index('дата', inplace=True)
-        df = df[(df.T != 0).any()]
-        df.reset_index(inplace=True)
+        df = hospitalPlaces(data)
         ch = Linear(
             'Доступные места', 
             df.replace(0, np.nan), 
@@ -495,9 +547,7 @@ def main(hidemenu=True):
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
-        _cols = [col for col in data.columns if 'округ' in col]
-        _cols.append('дата')
-        _cols.append('Калининград')
+        _cols = regDistr(data)
         ch = Area(
             'Распределение случаев по региону', 
             data[_cols], 
