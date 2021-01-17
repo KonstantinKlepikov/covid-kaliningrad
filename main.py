@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 import os
 
 
-__version__ = '1.2.4'
+__version__ = '1.2.6'
 
 
 class DrawChart(ABC):
@@ -94,12 +94,12 @@ class DrawChart(ABC):
         )
 
         # Draw text labels near the points, and highlight based on selection
-        self.text = self.line.mark_text(align='right', dx=-5, fill='#000000').encode(
+        self.text = self.line.mark_text(align='right', dx=-5, fill='#000000', fontSize=16).encode(
             text=alt.condition(nearest, 'y:Q', alt.value(' '))
         )
 
         # Draw X value on chart
-        self.x_text = self.line.mark_text(align="right", dx=-5, dy=12).encode(
+        self.x_text = self.line.mark_text(align="left", dx=-5, dy=15, fill='#808080', fontSize=16).encode(
             text=alt.condition(nearest, "дата:T", alt.value(" "), format='%Y-%m-%d')
         )
 
@@ -212,11 +212,13 @@ class Area(DrawChart):
         self.select()
 
 
-@st.cache(ttl=900.)
+cTime = 900. # cache time
+
+@st.cache(ttl=cTime)
 def dataloader(url):
     return pd.read_csv(url)
 
-@st.cache(suppress_st_warning=True, ttl=900.)
+@st.cache(suppress_st_warning=True, ttl=cTime)
 def asidedata(data, people=1012512):
     ds = {}
     ds['sick'] = data['всего'].sum()
@@ -245,14 +247,14 @@ def pagemaker():
 
     return p, paginator
 
-@st.cache(ttl=900.)
+@st.cache()
 def regDistr(data):
     _cols = [col for col in data.columns if 'округ' in col]
     _cols.append('дата')
     _cols.append('Калининград')
     return _cols
 
-@st.cache(ttl=900.)
+@st.cache(ttl=cTime)
 def hospitalPlaces(data):
     df = data[['дата', 'доступно под ковид', 'занято под ковид', 'доступно ИВЛ', 'занято ИВЛ', 'доступно под ковид и пневмонию', 'занято под ковид и пневмонию']].query("'2020-11-01' <= дата ")
     df.set_index('дата', inplace=True)
@@ -260,12 +262,33 @@ def hospitalPlaces(data):
     df.reset_index(inplace=True)
     return df
 
-@st.cache(ttl=900.)
+@st.cache(ttl=cTime)
 def irDestrib(data):
     df = data[['дата', 'infection rate']]
     high = df[df['infection rate'] >= 1].shape[0]
     low = df[df['infection rate'] < 1].shape[0]
     return high, low
+
+@st.cache(ttl=cTime)
+def proffesion(data):
+    _cols = [col for col in data.columns if '>' in col]
+    _cols.append('дата')
+    return _cols
+
+@st.cache()
+def ageDestr(data):
+    _cols = [
+        'до года',
+        'от 01 до 07', 
+        'от 07 до 14',
+        'от 15 до 17',
+        'от 18 до 29',
+        'от 30 до 49',
+        'от 50 до 64',
+        'от 65'
+    ]
+    _cols.append('дата')
+    return _cols
 
 
 def main(hidemenu=True):
@@ -314,7 +337,7 @@ def main(hidemenu=True):
         st.markdown('[Данные](https://docs.google.com/spreadsheets/d/1iAgNVDOUa-g22_VcuEAedR2tcfTlUcbFnXV5fMiqCR8/edit#gid=1038226408)')
 
         st.subheader('Изменения в версиях')
-        st.markdown('**v1.2.4** Улушено отображение на мобильных устройствах. Оптимизирована скорость загрузки страницы. Добавлены IR7 и распределение IR')
+        st.markdown('**v1.2.6** Улушено отображение на мобильных устройствах. Оптимизирована скорость загрузки страницы. Добавлены IR7 и распределение IR. Добавлены распределения.')
         st.markdown('**v1.1** Добавлена обработка данных и вывод основных визуализаций.')
 
         st.subheader('Контакты')
@@ -403,7 +426,7 @@ def main(hidemenu=True):
             poly=7,
             )
         ch.draw()
-        ch.leanchart()
+        ch.richchart()
         st.altair_chart(ch.polynomialchart())
 
         # cumsum
@@ -475,7 +498,7 @@ def main(hidemenu=True):
         ch = Linear(
             'Доступные места', 
             df.replace(0, np.nan), 
-            height=400, 
+            height=800, 
             point=True 
             )
         ch.draw()
@@ -532,6 +555,7 @@ def main(hidemenu=True):
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
+        # All regions
         _cols = regDistr(data)
         ch = Area(
             'Распределение случаев по региону', 
@@ -547,7 +571,67 @@ def main(hidemenu=True):
     elif page == 'demographics':
         st.header(p[page])
 
-        st.text('soon...')
+        # activivty
+        ch = Area(
+            'Распределение случаев по статусу', 
+            data[['дата', 'воспитанники/учащиеся', 'работающие', 'служащие', 'неработающие и самозанятые', 'пенсионеры']], 
+            interpolate='step', 
+            height=600,
+            scheme='tableau20'
+            )
+        ch.draw()
+        ch.leanchart()
+        st.altair_chart(ch.selectionchart())
+
+        # profession diagram
+        _colsPro = proffesion(data)
+        ch = Area(
+            'Распределение случаев по роду деятельности', 
+            data[_colsPro], 
+            interpolate='step', 
+            height=600,
+            scheme='tableau20'
+            )
+        ch.draw()
+        ch.leanchart()
+        st.altair_chart(ch.selectionchart())
+
+        # sex
+        ch = Area(
+            'Распределение случаев по полу', 
+            data[['дата', 'мужчины', 'женщины']], 
+            interpolate='step', 
+            height=400,
+            scheme='tableau20'
+            )
+        ch.draw()
+        ch.leanchart()
+        st.altair_chart(ch.selectionchart())
+
+        # age destribution
+        _colsAge = ageDestr(data)
+        ch = Area(
+            'Распределение случаев по возрасту', 
+            data[_colsAge], 
+            interpolate='step', 
+            height=600,
+            scheme='tableau20'
+            )
+        ch.draw()
+        ch.leanchart()
+        st.altair_chart(ch.selectionchart())
+
+        # source
+        ch = Area(
+            'Распределение по источнику заражения', 
+            data[['дата', 'завозные', 'контактные', 'не установлены']], 
+            interpolate='step', 
+            height=600,
+            scheme='tableau20'
+            )
+        ch.draw()
+        ch.leanchart()
+        st.altair_chart(ch.selectionchart())
 
     elif page == 'correlations':
         st.header(p[page])
