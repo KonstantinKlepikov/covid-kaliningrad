@@ -94,12 +94,12 @@ class DrawChart(ABC):
         )
 
         # Draw text labels near the points, and highlight based on selection
-        self.text = self.line.mark_text(align='right', dx=-5, fill='#000000').encode(
+        self.text = self.line.mark_text(align='right', dx=-5, fill='#000000', fontSize=16).encode(
             text=alt.condition(nearest, 'y:Q', alt.value(' '))
         )
 
         # Draw X value on chart
-        self.x_text = self.line.mark_text(align="right", dx=-5, dy=12).encode(
+        self.x_text = self.line.mark_text(align="left", dx=-5, dy=15, fill='#808080', fontSize=16).encode(
             text=alt.condition(nearest, "дата:T", alt.value(" "), format='%Y-%m-%d')
         )
 
@@ -247,7 +247,7 @@ def pagemaker():
 
     return p, paginator
 
-@st.cache(ttl=cTime)
+@st.cache()
 def regDistr(data):
     _cols = [col for col in data.columns if 'округ' in col]
     _cols.append('дата')
@@ -275,7 +275,7 @@ def proffesion(data):
     _cols.append('дата')
     return _cols
 
-@st.cache(ttl=cTime)
+@st.cache()
 def ageDestr(data):
     _cols = [
         'до года',
@@ -337,7 +337,7 @@ def main(hidemenu=True):
         st.markdown('[Данные](https://docs.google.com/spreadsheets/d/1iAgNVDOUa-g22_VcuEAedR2tcfTlUcbFnXV5fMiqCR8/edit#gid=1038226408)')
 
         st.subheader('Изменения в версиях')
-        st.markdown('**v1.2.4** Улушено отображение на мобильных устройствах. Оптимизирована скорость загрузки страницы. Добавлены IR7 и распределение IR')
+        st.markdown('**v1.2.6** Улушено отображение на мобильных устройствах. Оптимизирована скорость загрузки страницы. Добавлены IR7 и распределение IR. Добавлены распределения.')
         st.markdown('**v1.1** Добавлена обработка данных и вывод основных визуализаций.')
 
         st.subheader('Контакты')
@@ -426,7 +426,7 @@ def main(hidemenu=True):
             poly=7,
             )
         ch.draw()
-        ch.leanchart()
+        ch.richchart()
         st.altair_chart(ch.polynomialchart())
 
         # cumsum
@@ -498,7 +498,7 @@ def main(hidemenu=True):
         ch = Linear(
             'Доступные места', 
             df.replace(0, np.nan), 
-            height=400, 
+            height=800, 
             point=True 
             )
         ch.draw()
