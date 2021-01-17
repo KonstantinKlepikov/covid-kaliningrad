@@ -59,23 +59,24 @@ def main():
     data.drop(['учебные учреждения'], axis=1, inplace=True)
 
     # calculate attitude for infection rate
+    data['infection rate'] = data['infection rate'].astype(np.float16) 
     data['plus'] = data[data['infection rate'] >= 1]['infection rate']
     data['minus'] = data[data['infection rate'] < 1]['infection rate']
     data['plus'] = data['plus'].mask(data['plus'] >= 0, 1)
     data['minus'] = data['minus'].mask(data['minus'] >= 0, 1)
     data['plus'] = data['plus'].cumsum()
     data['minus'] = data['minus'].cumsum()
-    data[['plus', 'minus']].fillna(method='ffill', inplace=True)
+    data[['plus', 'minus']] = data[['plus', 'minus']].astype("object").fillna(method='ffill')
     data['отношение'] = data['plus'] / data['minus']
     data.drop(['plus', 'minus'], axis=1, inplace=True)
-    data['отношение'] = data['отношение'].apply(lambda x: round(x, 2))
 
     # minimize numerics memory sizes
-    data['infection rate'] = data['infection rate'].astype(np.float16) 
     data['IR7'] = data['IR7'].astype(np.float16)
     data['отношение'] = data['отношение'].astype(np.float16)
+    data['отношение'] = data['отношение'].apply(lambda x: round(x, 2))
     for i in data.columns.difference(['дата', 'infection rate', 'IR7', 'отношение', 'кол-во тестов / 10']):
         data[i] = data[i].astype(np.int16)
+
 
     # flush
     data.to_csv(pathMaker('data'), index=False)
@@ -96,6 +97,6 @@ def main():
     for i in rosstat.columns.difference(['Месяц']):
         rosstat[i] = rosstat[i].astype(np.int16)
     rosstat.to_csv(pathMaker('rosstat'), index=False)
-
+    
 
 main()
