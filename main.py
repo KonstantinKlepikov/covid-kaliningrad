@@ -275,6 +275,21 @@ def proffesion(data):
     _cols.append('дата')
     return _cols
 
+@st.cache(ttl=cTime)
+def ageDestr(data):
+    _cols = [
+        'до года',
+        'от 01 до 07', 
+        'от 07 до 14',
+        'от 15 до 17',
+        'от 18 до 29',
+        'от 30 до 49',
+        'от 50 до 64',
+        'от 65'
+    ]
+    _cols.append('дата')
+    return _cols
+
 
 def main(hidemenu=True):
 
@@ -556,11 +571,60 @@ def main(hidemenu=True):
     elif page == 'demographics':
         st.header(p[page])
 
+        # activivty
+        ch = Area(
+            'Распределение случаев по статусу', 
+            data[['дата', 'воспитанники/учащиеся', 'работающие', 'служащие', 'неработающие и самозанятые', 'пенсионеры']], 
+            interpolate='step', 
+            height=600,
+            scheme='tableau20'
+            )
+        ch.draw()
+        ch.leanchart()
+        st.altair_chart(ch.selectionchart())
+
         # profession diagram
         _colsPro = proffesion(data)
         ch = Area(
-            'Распределение случаев по профессиям', 
+            'Распределение случаев по роду деятельности', 
             data[_colsPro], 
+            interpolate='step', 
+            height=600,
+            scheme='tableau20'
+            )
+        ch.draw()
+        ch.leanchart()
+        st.altair_chart(ch.selectionchart())
+
+        # sex
+        ch = Area(
+            'Распределение случаев по полу', 
+            data[['дата', 'мужчины', 'женщины']], 
+            interpolate='step', 
+            height=400,
+            scheme='tableau20'
+            )
+        ch.draw()
+        ch.leanchart()
+        st.altair_chart(ch.selectionchart())
+
+        # age destribution
+        _colsAge = ageDestr(data)
+        ch = Area(
+            'Распределение случаев по возрасту', 
+            data[_colsAge], 
+            interpolate='step', 
+            height=600,
+            scheme='tableau20'
+            )
+        ch.draw()
+        ch.leanchart()
+        st.altair_chart(ch.selectionchart())
+
+        # source
+        ch = Area(
+            'Распределение по источнику заражения', 
+            data[['дата', 'завозные', 'контактные', 'не установлены']], 
             interpolate='step', 
             height=600,
             scheme='tableau20'
