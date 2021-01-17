@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 import os
 
 
-__version__ = '1.2.4'
+__version__ = '1.2.6'
 
 
 class DrawChart(ABC):
@@ -212,11 +212,13 @@ class Area(DrawChart):
         self.select()
 
 
-@st.cache(ttl=900.)
+cTime = 900. # cache time
+
+@st.cache(ttl=cTime)
 def dataloader(url):
     return pd.read_csv(url)
 
-@st.cache(suppress_st_warning=True, ttl=900.)
+@st.cache(suppress_st_warning=True, ttl=cTime)
 def asidedata(data, people=1012512):
     ds = {}
     ds['sick'] = data['всего'].sum()
@@ -245,14 +247,14 @@ def pagemaker():
 
     return p, paginator
 
-@st.cache(ttl=900.)
+@st.cache(ttl=cTime)
 def regDistr(data):
     _cols = [col for col in data.columns if 'округ' in col]
     _cols.append('дата')
     _cols.append('Калининград')
     return _cols
 
-@st.cache(ttl=900.)
+@st.cache(ttl=cTime)
 def hospitalPlaces(data):
     df = data[['дата', 'доступно под ковид', 'занято под ковид', 'доступно ИВЛ', 'занято ИВЛ', 'доступно под ковид и пневмонию', 'занято под ковид и пневмонию']].query("'2020-11-01' <= дата ")
     df.set_index('дата', inplace=True)
@@ -260,12 +262,18 @@ def hospitalPlaces(data):
     df.reset_index(inplace=True)
     return df
 
-@st.cache(ttl=900.)
+@st.cache(ttl=cTime)
 def irDestrib(data):
     df = data[['дата', 'infection rate']]
     high = df[df['infection rate'] >= 1].shape[0]
     low = df[df['infection rate'] < 1].shape[0]
     return high, low
+
+@st.cache(ttl=cTime)
+def proffesion(data):
+    _cols = [col for col in data.columns if '>' in col]
+    _cols.append('дата')
+    return _cols
 
 
 def main(hidemenu=True):
@@ -532,6 +540,7 @@ def main(hidemenu=True):
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
+        # All regions
         _cols = regDistr(data)
         ch = Area(
             'Распределение случаев по региону', 
@@ -547,7 +556,18 @@ def main(hidemenu=True):
     elif page == 'demographics':
         st.header(p[page])
 
-        st.text('soon...')
+        # profession diagram
+        _colsPro = proffesion(data)
+        ch = Area(
+            'Распределение случаев по профессиям', 
+            data[_colsPro], 
+            interpolate='step', 
+            height=600,
+            scheme='tableau20'
+            )
+        ch.draw()
+        ch.leanchart()
+        st.altair_chart(ch.selectionchart())
 
     elif page == 'correlations':
         st.header(p[page])
