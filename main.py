@@ -30,9 +30,10 @@ class DrawChart(ABC):
         step-after
     """
 
-    def __init__(self, title, data, type_='quantitative', interpolate='linear', point=False, height=600, width=800, scheme='category10', level=False, poly=None):
+    def __init__(self, title, data, target='дата', type_='quantitative', interpolate='linear', point=False, height=600, width=800, scheme='category10', level=False, poly=None):
         self.title = title
-        self.data = data.melt('дата', var_name='показатель', value_name='y')
+        self.target = target
+        self.data = data.melt(target, var_name='показатель', value_name='y')
         self.type_ = type_
         self.interpolate = interpolate
         self.point = point
@@ -48,30 +49,38 @@ class DrawChart(ABC):
 
     def select(self):
         # Create a selection that chooses the nearest point & selects based on x-value
-        nearest = alt.selection(type='single',
-                            nearest=True,
-                            on='mouseover',
-                            fields=['дата'],
-                            empty='none'
-                            )
+        nearest = alt.selection(
+            type='single',
+            nearest=True,
+            on='mouseover',
+            fields=[self.target],
+            empty='none'
+            )
+
         # Selection in a legend
         self.leg = alt.selection_multi(fields=['показатель'], bind='legend')
 
         # Draw a chart
         self.line = self.draw.encode(
-            alt.X('дата', 
+            alt.X(self.target, 
                 type='temporal', 
                 title=' ', 
-                axis=alt.Axis(grid=False, offset=10)
+                axis=alt.Axis(grid=True, offset=10)
                 ),
             alt.Y('y', 
                 type=self.type_, 
                 title='количество', 
                 scale=alt.Scale(zero=False),
-                axis=alt.Axis(grid=False, offset=10)
+                axis=alt.Axis(grid=True, offset=10)
                 ),
             alt.Color('показатель:N',
-                scale=alt.Scale(scheme=self.scheme)
+                scale=alt.Scale(scheme=self.scheme),
+                legend=alt.Legend(
+                    labelFontSize=16, 
+                    labelColor='#808080', 
+                    orient='top-left', title='', 
+                    labelLimit=320
+                    )
                 ),
             opacity=alt.condition(self.leg, 
                 alt.value(1), 
@@ -80,9 +89,9 @@ class DrawChart(ABC):
         )
 
         # Transparent selectors across the chart. This is what tells us
-        # the x-value of the cursor        
+        # the x-value of the cursor
         self.selectors = alt.Chart(self.data).mark_point().encode(
-                            alt.X('дата', type='temporal'),
+                            alt.X(self.target, type='temporal'),
                             opacity=alt.value(0),
                         ).add_selection(
                             nearest
@@ -94,18 +103,27 @@ class DrawChart(ABC):
         )
 
         # Draw text labels near the points, and highlight based on selection
-        self.text = self.line.mark_text(align='right', dx=-5, fill='#000000', fontSize=16).encode(
-            text=alt.condition(nearest, 'y:Q', alt.value(' '))
+        self.text = self.line.mark_text(
+            align='right', 
+            dx=-5, 
+            fill='#000000', 
+            fontSize=16, 
+            clip=False).encode(
+                text=alt.condition(nearest, 'y', alt.value(''), type=self.type_)
         )
 
         # Draw X value on chart
-        self.x_text = self.line.mark_text(align="left", dx=-5, dy=15, fill='#808080', fontSize=16).encode(
-            text=alt.condition(nearest, "дата:T", alt.value(" "), format='%Y-%m-%d')
+        self.x_text = self.line.mark_text(
+            align="left", 
+            dx=-5, dy=15, 
+            fill='#808080', 
+            fontSize=16).encode(
+                text=alt.condition(nearest, self.target, alt.value(''), type='temporal', format='%Y-%m-%d')
         )
 
         # Draw a rule at the location of the selection
         self.rules = alt.Chart(self.data).mark_rule(color='gray').encode(
-            alt.X('дата', type='temporal')
+            alt.X(self.target, type='temporal')
         ).transform_filter(
             nearest
         )
@@ -138,7 +156,7 @@ class DrawChart(ABC):
             alt.X('date:T', scale=alt.Scale(domain=brush))
         )
         inline = self.draw.encode(
-            alt.X('дата', 
+            alt.X(self.target, 
                 type='temporal',
                 title=' ', 
                 axis=alt.Axis(grid=False)
@@ -181,7 +199,7 @@ class DrawChart(ABC):
         degree_list = self.poly,
         polynomial_fit = [
             self.line.transform_regression(
-                'дата', 'y', method='poly', order=order, as_=['дата', str(order)]
+                self.target, 'y', method='poly', order=order, as_=[self.target, str(order)]
             ).mark_line(
             ).transform_fold(
                 [str(order)], as_=['регрессия', 'y']
@@ -211,10 +229,16 @@ class Area(DrawChart):
         self.draw = alt.Chart(self.data).mark_area(interpolate=self.interpolate)
         self.select()
 
+class Bar(DrawChart):
+
+    def draw(self):
+        self.draw = alt.Chart(self.data).mark_bar()
+        self.select()
+
 
 cTime = 900. # cache time
 
-@st.cache(ttl=cTime)
+@st.cache(allow_output_mutation=True, ttl=cTime)
 def dataloader(url):
     return pd.read_csv(url)
 
@@ -306,7 +330,7 @@ def main(hidemenu=True):
     st.sidebar.title('Данные о covid-19 в Калининградской области')
     st.sidebar.text('v' + __version__)
 
-    data = dataloader('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/data.csv')
+    data = dataloader('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/data.csv')    
 
     ds = asidedata(data)
 
@@ -337,7 +361,7 @@ def main(hidemenu=True):
         st.markdown('[Данные](https://docs.google.com/spreadsheets/d/1iAgNVDOUa-g22_VcuEAedR2tcfTlUcbFnXV5fMiqCR8/edit#gid=1038226408)')
 
         st.subheader('Изменения в версиях')
-        st.markdown('**v1.2.6** Улушено отображение на мобильных устройствах. Оптимизирована скорость загрузки страницы. Добавлены IR7 и распределение IR. Добавлены распределения.')
+        st.markdown('**v1.2** Улушено отображение на мобильных устройствах. Оптимизирована скорость загрузки страницы. Добавлены IR7 и распределение IR. Добавлены распределения. Добавлены данные Росстата.')
         st.markdown('**v1.1** Добавлена обработка данных и вывод основных визуализаций.')
 
         st.subheader('Контакты')
@@ -346,6 +370,9 @@ def main(hidemenu=True):
         st.markdown('[Мой сайт немножко про маркетинг](https://yorb.ru/)')
         st.markdown('[Телеграм](https://t.me/KlepikovKonstantin)')
         st.markdown('[Фейсбук](https://facebook.com/konstatin.klepikov)')
+
+        st.markdown('К сожалению официальные службы не поделились со мной имеющимися историческими данными. Буду благодарен за любой источник данных, если таковой имеется - пишите в [телеграм](https://t.me/KlepikovKonstantin).')
+        st.image('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/main/img/answer.png', use_column_width=True)
     
     elif page == 'cases':
         st.header(p[page])
@@ -429,7 +456,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.polynomialchart())
 
-        # cumsum
+        # death cumsum
         ch = Linear(
             'смертельные случаи нарастающим итогом', 
             data[['дата', 'кумул.умерли']], 
@@ -445,12 +472,26 @@ def main(hidemenu=True):
         ch = Linear(
             'умерли в палатах для ковид/пневмонии', 
             data[['дата', 'умерли в палатах для ковид/пневмония с 1 апреля']].query("'2020-11-01' <= дата & `умерли в палатах для ковид/пневмония с 1 апреля` > 0"), 
-            height=300, 
+            height=600, 
             point=True, 
             scheme='set1'
             )
         ch.draw()
         ch.richchart()
+        st.altair_chart(ch.emptychart())
+
+        # rosstat death
+        rosstat = dataloader('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/rosstat.csv')
+        rosstat['Месяц'] = pd.to_datetime(rosstat['Месяц'], dayfirst=True)
+        ch = Area(
+            'Данные Росстата о смертности с диагнозом COVID-19', 
+            rosstat, 
+            target='Месяц',
+            height=600,
+            width=600
+            )
+        ch.draw()
+        ch.leanchart()
         st.altair_chart(ch.emptychart())
 
     elif page == 'exits':
@@ -495,11 +536,10 @@ def main(hidemenu=True):
 
         # hospital places
         df = hospitalPlaces(data)
-        ch = Linear(
+        ch = Point(
             'Доступные места', 
             df.replace(0, np.nan), 
             height=800, 
-            point=True 
             )
         ch.draw()
         ch.richchart()
