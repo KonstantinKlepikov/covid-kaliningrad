@@ -2,22 +2,7 @@ import requests
 import numpy as np
 import pandas as pd
 import os
-
-
-def loader(file_id, file_url, sheet_name):
-
-    url = file_url.format_map(vars())
-    get = requests.get(url)
-    if get.status_code == 200:
-        if sheet_name == 'data':
-            table = pd.read_csv(url, parse_dates=['дата'], dayfirst=True)
-        else:
-            table = pd.read_csv(url)
-    return table
-
-def pathMaker(slug):
-
-    return os.path.join('data', slug + '.csv')
+import dataLoader as dl
 
 
 def main():
@@ -28,7 +13,7 @@ def main():
 
     loaded = {}
     for sheet_name in sheets:
-        loaded[sheet_name] = loader(file_id, file_url, sheet_name)
+        loaded[sheet_name] = dl.loader(file_id, file_url, sheet_name)
 
 
     # table data preparing
@@ -79,7 +64,7 @@ def main():
 
 
     # flush
-    data.to_csv(pathMaker('data'), index=False)
+    data.to_csv(dl.pathMaker('data'), index=False)
 
 
     # table destrib preparing
@@ -88,7 +73,7 @@ def main():
     destrib.fillna(0, inplace=True)
     for i in destrib.columns.difference(['дата']):
         destrib[i] = destrib[i].astype(np.int8)
-    destrib.to_csv(pathMaker('destrib'), index=False)
+    destrib.to_csv(dl.pathMaker('destrib'), index=False)
 
     # table rosstat preparing
     rosstat = loaded['rosstat']
@@ -96,7 +81,7 @@ def main():
     rosstat.fillna(0, inplace=True)
     for i in rosstat.columns.difference(['Месяц']):
         rosstat[i] = rosstat[i].astype(np.int16)
-    rosstat.to_csv(pathMaker('rosstat'), index=False)
+    rosstat.to_csv(dl.pathMaker('rosstat'), index=False)
     
 
 main()
