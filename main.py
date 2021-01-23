@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 import os
 
 
-__version__ = '1.2.6'
+__version__ = '1.2.9'
 
 
 class DrawChart(ABC):
@@ -271,6 +271,13 @@ def pagemaker():
 
     return p, paginator
 
+@st.cache(ttl=cTime)
+def invitroCases(data):
+    data['shape'] = data['positive'] * 100 / data['total']
+    data['shape'] = data['shape'].astype(np.float16)
+    data['shape'] = data['shape'].apply(lambda x: round(x, 2))
+    return data
+
 @st.cache()
 def regDistr(data):
     _cols = [col for col in data.columns if 'округ' in col]
@@ -330,7 +337,8 @@ def main(hidemenu=True):
     st.sidebar.title('Данные о covid-19 в Калининградской области')
     st.sidebar.text('v' + __version__)
 
-    data = dataloader('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/data.csv')    
+    data = dataloader('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/data.csv')
+    invitro = invitroCases(data[['дата', 'total', 'positive']])
 
     ds = asidedata(data)
 
@@ -361,7 +369,7 @@ def main(hidemenu=True):
         st.markdown('[Данные](https://docs.google.com/spreadsheets/d/1iAgNVDOUa-g22_VcuEAedR2tcfTlUcbFnXV5fMiqCR8/edit#gid=1038226408)')
 
         st.subheader('Изменения в версиях')
-        st.markdown('**v1.2** Улушено отображение на мобильных устройствах. Оптимизирована скорость загрузки страницы. Добавлены IR7 и распределение IR. Добавлены распределения. Добавлены данные Росстата.')
+        st.markdown('**v1.2** Улушено отображение на мобильных устройствах. Оптимизирована скорость загрузки страницы. Добавлены IR7 и распределение IR, распределения, данные Росстата, invitro')
         st.markdown('**v1.1** Добавлена обработка данных и вывод основных визуализаций.')
 
         st.subheader('Контакты')
@@ -406,11 +414,34 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.emptychart())
 
+        # invitro cases
+        st.subheader('Данные о случаях, выявленных в сети клиник Invitro')
+        st.markdown('Нет сведений о том, что данные случаи учитываются в статистике Роспотребнадзора. Сведения получены на сайте [invitro.ru](https://invitro.ru/l/invitro_monitor/)')
+
+        ch = Linear(
+            'Кейсы в Invitro', 
+            data[['дата', 'positive']],
+            scheme='set1'
+            )
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.selectionchart())
+
+        # invitro cases cumulative
+        ch = Linear(
+            'Кейсы в Invitro аккумулировано', 
+            data[['дата', 'positivecum']]
+            )
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.selectionchart())
+
+
     elif page == 'infection rate':
         st.header(p[page])
 
         # ir4
-        st.markdown('IR4 расчитывается по методике РосПотребНадзора - как отношение количества заболевших за прошедшие 4 дня к количеству заболевших за предыдущие прошедшие 4 дня.')
+        st.markdown('IR4 расчитывается по методике Роспотребнадзора - как отношение количества заболевших за прошедшие 4 дня к количеству заболевших за предыдущие прошедшие 4 дня.')
         ch = Linear(
             'Infection Rate 4 days', 
             data[['дата', 'infection rate']], 
@@ -521,7 +552,7 @@ def main(hidemenu=True):
 
     elif page == 'capacity':
         st.header(p[page])
-        st.markdown('Активные случаи - это заразившиеся минус выписанные и умершие. Болеют ли эти люди в текущий момент на самом деле установить невозможно. Данные о загруженности больниц предоставлены мед.службами.')
+        st.markdown('Активные случаи - это заразившиеся минус выписанные и умершие. Ежедневные данные о количестве болеющих и госпитализированных не проситавляются. Данные о загруженности больниц предоставлены нерегулярно.')
 
         # cumsum minus exit
         ch = Linear(
@@ -574,6 +605,37 @@ def main(hidemenu=True):
             'Тестирование и выписка', 
             data[['дата', 'выписали', 'кол-во тестов / 10']], 
             height=500,
+            scheme='set1'
+            )
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.selectionchart())
+
+        # invitro tests
+        st.subheader('Данные о тестах, проведенных в сети клиник Invitro')
+        st.markdown('Нет сведений о том, что данные о тестах invitro учитываются в статистике Роспотребнадзора. Сведения получены на сайте [invitro.ru](https://invitro.ru/l/invitro_monitor/)')
+
+        ch = Linear(
+            'Кейсы в Invitro', 
+            data[['дата', 'positive', 'negative']]
+            )
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.selectionchart())
+
+        # invitro cases cumulative
+        ch = Linear(
+            'Тесты в Invitro аккумулировано', 
+            data[['дата', 'positivecum', 'negativecum']]
+            )
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.selectionchart())
+
+        # invitro cases shape
+        ch = Linear(
+            '% положительных тестов в Invitro', 
+            invitro[['дата', 'shape']],
             scheme='set1'
             )
         ch.draw()
