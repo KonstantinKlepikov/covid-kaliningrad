@@ -263,6 +263,7 @@ def pagemaker():
     'exits': 'Данные о выписке', 
     'capacity': 'Нагрузка на систему', 
     'tests': 'Тестирование', 
+    'vaccination': 'Вакцинация',
     'regions': 'Регионы',
     'demographics': 'Демография',
     'correlations': 'Корреляции'
@@ -286,12 +287,12 @@ def regDistr(data):
     return _cols
 
 @st.cache(ttl=cTime)
-def hospitalPlaces(data):
-    df = data[['дата', 'доступно под ковид', 'занято под ковид', 'доступно ИВЛ', 'занято ИВЛ', 'доступно под ковид и пневмонию', 'занято под ковид и пневмонию']].query("'2020-11-01' <= дата ")
+def slicedData(data, query):
+    df = data.query(query)
     df.set_index('дата', inplace=True)
     df = df[(df.T != 0).any()]
     df.reset_index(inplace=True)
-    return df
+    return df.replace(0, np.nan)
 
 @st.cache(ttl=cTime)
 def irDestrib(data):
@@ -361,7 +362,7 @@ def main(hidemenu=True):
         st.header(p[page])
 
         st.subheader('Описание проекта')
-        st.markdown('Проект работает с открытыми данными, собранными из различных официальных источников. Актуальность информации зависит от скорости обновления таблицы и источника агрегации и может составлять от 15 минут до 8 часов с момента публикации. Предсталеные визуализированные данные не являются точными и не могут отражать истинную картину распространения covid-19 в Калининградской области. Автор проекта агрегирует данные с образовательной целью и не несет ответственности за их достоверность. Весь контент и код проекта предоставляется по [MIT лицензии](https://opensource.org/licenses/mit-license.php).')
+        st.markdown('Проект работает с открытыми данными, собранными из различных официальных источников. Данные обновляются в конце дня. Предсталеные визуализированные данные не являются точными и не могут отражать истинную картину распространения covid-19 в Калининградской области. Автор проекта агрегирует данные с образовательной целью и не несет ответственности за их достоверность. Весь контент и код проекта предоставляется по [MIT лицензии](https://opensource.org/licenses/mit-license.php).')
 
         st.subheader('Как это сделано?')
         st.markdown('[Статья о том, как собрано это приложение](https://konstantinklepikov.github.io/2021/01/10/zapuskaem-machine-learning-mvp.html)')
@@ -369,7 +370,7 @@ def main(hidemenu=True):
         st.markdown('[Данные](https://docs.google.com/spreadsheets/d/1iAgNVDOUa-g22_VcuEAedR2tcfTlUcbFnXV5fMiqCR8/edit#gid=1038226408)')
 
         st.subheader('Изменения в версиях')
-        st.markdown('**v1.2** Улушено отображение на мобильных устройствах. Оптимизирована скорость загрузки страницы. Добавлены IR7 и распределение IR, распределения, данные Росстата, invitro')
+        st.markdown('**v1.2** Улушено отображение на мобильных устройствах. Оптимизирована скорость загрузки страницы. Добавлены IR7 и распределение IR, распределения, данные Росстата, invitro, вакцинация.')
         st.markdown('**v1.1** Добавлена обработка данных и вывод основных визуализаций.')
 
         st.subheader('Контакты')
@@ -415,7 +416,7 @@ def main(hidemenu=True):
         st.altair_chart(ch.emptychart())
 
         # invitro cases
-        st.subheader('Данные о случаях, выявленных в сети клиник Invitro')
+        st.subheader('Данные о случаях, выявленных в сети клиник Invitro (IgG)')
         st.markdown('Нет сведений о том, что данные случаи учитываются в статистике Роспотребнадзора. Сведения получены на сайте [invitro.ru](https://invitro.ru/l/invitro_monitor/)')
 
         ch = Linear(
@@ -566,10 +567,13 @@ def main(hidemenu=True):
         st.altair_chart(ch.emptychart())
 
         # hospital places
-        df = hospitalPlaces(data)
+        df = slicedData(
+            data[['дата', 'доступно под ковид', 'занято под ковид', 'доступно ИВЛ', 'занято ИВЛ', 'доступно под ковид и пневмонию', 'занято под ковид и пневмонию']],
+            "'2020-11-01' <= дата "
+            )
         ch = Point(
             'Доступные места', 
-            df.replace(0, np.nan), 
+            df, 
             height=800, 
             )
         ch.draw()
@@ -589,7 +593,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.selectionchart())
 
-        # tesats and cases
+        # tests and cases
         st.markdown('Для наглядности, количество тестов разделено на 10 для приведенных графиков.')
         ch = Linear(
             'Тестирование и распространение болезни', 
@@ -612,7 +616,7 @@ def main(hidemenu=True):
         st.altair_chart(ch.selectionchart())
 
         # invitro tests
-        st.subheader('Данные о тестах, проведенных в сети клиник Invitro')
+        st.subheader('Данные о тестах, проведенных в сети клиник Invitro (IgG)')
         st.markdown('Нет сведений о том, что данные о тестах invitro учитываются в статистике Роспотребнадзора. Сведения получены на сайте [invitro.ru](https://invitro.ru/l/invitro_monitor/)')
 
         ch = Linear(
@@ -641,6 +645,34 @@ def main(hidemenu=True):
         ch.draw()
         ch.richchart()
         st.altair_chart(ch.selectionchart())
+
+    elif page == 'vaccination':
+        st.header(p[page])
+
+        # vaccine income
+        ch = Area(
+            'Поступиление вакцин', 
+            data[['дата', 'поступило доз вакцин']],
+            scheme='set1'
+            )
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.selectionchart())
+
+        # vaccination outcome
+        df = slicedData(
+            data[['дата', 'компонент 1', 'компонент 2']],
+            "'2020-08-01' <= дата "
+            )
+        ch = Point(
+            'Использовано вакцин',
+            df, 
+            height=400, 
+            )
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.emptychart())
+
 
     elif page == 'regions':
         st.header(p[page])
