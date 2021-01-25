@@ -1,330 +1,19 @@
+import os
+from abc import ABC, abstractmethod
 import streamlit as st
 import numpy as np
 import pandas as pd
 import altair as alt
-from abc import ABC, abstractmethod
-import os
+import supportFunction as sfunc
+from drawTools import Linear, Point, Area, Bar
 
 
-__version__ = '1.2.9'
-
-
-class DrawChart(ABC):
-
-    """Type of available interpolation
-
-        basis
-        basis-open
-        basis-closed
-        bundle
-        cardinal
-        cardinal-open
-        cardinal-closed
-        catmull-rom
-        linear
-        linear-closed
-        monotone
-        natural
-        step
-        step-before
-        step-after
-    """
-
-    def __init__(self, title, data, target='дата', type_='quantitative', interpolate='linear', point=False, height=600, width=800, scheme='category10', level=False, poly=None):
-        self.title = title
-        self.target = target
-        self.data = data.melt(target, var_name='показатель', value_name='y')
-        self.type_ = type_
-        self.interpolate = interpolate
-        self.point = point
-        self.width = width
-        self.height = height
-        self.scheme = scheme
-        self.level = level
-        self.poly = poly
-
-    @abstractmethod
-    def draw(self):
-        pass
-
-    def select(self):
-        # Create a selection that chooses the nearest point & selects based on x-value
-        nearest = alt.selection(
-            type='single',
-            nearest=True,
-            on='mouseover',
-            fields=[self.target],
-            empty='none'
-            )
-
-        # Selection in a legend
-        self.leg = alt.selection_multi(fields=['показатель'], bind='legend')
-
-        # Draw a chart
-        self.line = self.draw.encode(
-            alt.X(self.target, 
-                type='temporal', 
-                title=' ', 
-                axis=alt.Axis(grid=True, offset=10)
-                ),
-            alt.Y('y', 
-                type=self.type_, 
-                title='количество', 
-                scale=alt.Scale(zero=False),
-                axis=alt.Axis(grid=True, offset=10)
-                ),
-            alt.Color('показатель:N',
-                scale=alt.Scale(scheme=self.scheme),
-                legend=alt.Legend(
-                    labelFontSize=16, 
-                    labelColor='#808080', 
-                    orient='top-left', title='', 
-                    labelLimit=320
-                    )
-                ),
-            opacity=alt.condition(self.leg, 
-                alt.value(1), 
-                alt.value(0.2)
-                )
-        )
-
-        # Transparent selectors across the chart. This is what tells us
-        # the x-value of the cursor
-        self.selectors = alt.Chart(self.data).mark_point().encode(
-                            alt.X(self.target, type='temporal'),
-                            opacity=alt.value(0),
-                        ).add_selection(
-                            nearest
-                        )
-        
-        # Draw points on the line, and highlight based on selection
-        self.points = self.line.mark_point().encode(
-            opacity=alt.condition(nearest, alt.value(1), alt.value(0))
-        )
-
-        # Draw text labels near the points, and highlight based on selection
-        self.text = self.line.mark_text(
-            align='right', 
-            dx=-5, 
-            fill='#000000', 
-            fontSize=16, 
-            clip=False).encode(
-                text=alt.condition(nearest, 'y', alt.value(''), type=self.type_)
-        )
-
-        # Draw X value on chart
-        self.x_text = self.line.mark_text(
-            align="left", 
-            dx=-5, dy=15, 
-            fill='#808080', 
-            fontSize=16).encode(
-                text=alt.condition(nearest, self.target, alt.value(''), type='temporal', format='%Y-%m-%d')
-        )
-
-        # Draw a rule at the location of the selection
-        self.rules = alt.Chart(self.data).mark_rule(color='gray').encode(
-            alt.X(self.target, type='temporal')
-        ).transform_filter(
-            nearest
-        )
-
-    def leanchart(self):
-        self.chart = alt.layer(
-            self.line, self.selectors, self.rules
-        ).properties(
-            title=self.title,
-            width=self.width,
-            height=self.height
-        ).add_selection(
-            self.leg
-        )
-
-    def richchart(self):
-        self.chart = alt.layer(
-            self.line, self.selectors, self.points, self.rules, self.text, self.x_text
-        ).properties(
-            title=self.title,
-            width=self.width,
-            height=self.height
-        ).add_selection(
-            self.leg
-        )
-
-    def selectionchart(self):
-        brush = alt.selection(type='interval', encodings=['x'])
-        upper = self.chart.encode(
-            alt.X('date:T', scale=alt.Scale(domain=brush))
-        )
-        inline = self.draw.encode(
-            alt.X(self.target, 
-                type='temporal',
-                title=' ', 
-                axis=alt.Axis(grid=False)
-                ),
-            alt.Y('y', 
-                type=self.type_, 
-                scale=alt.Scale(zero=False),
-                title=' ',
-                axis=alt.Axis(grid=False, labels=False)
-                ),
-            alt.Color('показатель:N',
-                scale=alt.Scale(scheme=self.scheme)
-                ),
-            opacity=alt.condition(self.leg, 
-                alt.value(1), 
-                alt.value(0.2)
-                )
-        )
-        lower = alt.layer(
-            inline, self.rules
-        ).properties(
-            width=self.width,
-            height=20
-        ).add_selection(
-            brush
-        )
-        return upper & lower
-
-    def baselinechart(self):
-        # Create a chart
-        # With baseline == level
-        rule = alt.Chart(pd.DataFrame({'y': [self.level]})
-            ).mark_rule().encode(
-                y='y',
-                size=alt.value(0.5),
-                )
-        return self.chart + rule
-
-    def polynomialchart(self):
-        degree_list = self.poly,
-        polynomial_fit = [
-            self.line.transform_regression(
-                self.target, 'y', method='poly', order=order, as_=[self.target, str(order)]
-            ).mark_line(
-            ).transform_fold(
-                [str(order)], as_=['регрессия', 'y']
-            ).encode(alt.Color('регрессия:N'))
-            for order in degree_list
-        ]
-        return alt.layer(self.chart, *polynomial_fit)
-
-    def emptychart(self):
-        return self.chart
-
-class Linear(DrawChart):
-
-    def draw(self):
-        self.draw = alt.Chart(self.data).mark_line(interpolate=self.interpolate, point=self.point)
-        self.select()
-
-class Point(DrawChart):
-
-    def draw(self):
-        self.draw = alt.Chart(self.data).mark_point(interpolate=self.interpolate)
-        self.select()
-
-class Area(DrawChart):
-
-    def draw(self):
-        self.draw = alt.Chart(self.data).mark_area(interpolate=self.interpolate)
-        self.select()
-
-class Bar(DrawChart):
-
-    def draw(self):
-        self.draw = alt.Chart(self.data).mark_bar()
-        self.select()
-
-
-cTime = 900. # cache time
-
-@st.cache(allow_output_mutation=True, ttl=cTime)
-def dataloader(url):
-    return pd.read_csv(url)
-
-@st.cache(suppress_st_warning=True, ttl=cTime)
-def asidedata(data, people=1012512):
-    ds = {}
-    ds['sick'] = data['всего'].sum()
-    ds['proc'] = round(ds['sick'] * 100 / people, 2)
-    ds['dead'] = data['умерли от ковид'].sum()
-    ds['let'] = round(ds['dead'] * 100 / ds['sick'], 2)
-    ds['ex'] = data['выписали'].sum()
-    ds['update'] = data['дата'].iloc[-1]
-
-    return ds
-
-@st.cache()
-def pagemaker():
-    p = {'intro': 'Введение',
-    'cases': 'Динамика заражения', 
-    'infection rate': 'Infection Rate', 
-    'deaths': 'Данные об умерших', 
-    'exits': 'Данные о выписке', 
-    'capacity': 'Нагрузка на систему', 
-    'tests': 'Тестирование', 
-    'vaccination': 'Вакцинация',
-    'regions': 'Регионы',
-    'demographics': 'Демография',
-    'correlations': 'Корреляции'
-    }
-    paginator = [n for n in p.keys()]
-
-    return p, paginator
-
-@st.cache(ttl=cTime)
-def invitroCases(data):
-    data['shape'] = data['positive'] * 100 / data['total']
-    data['shape'] = data['shape'].astype(np.float16)
-    data['shape'] = data['shape'].apply(lambda x: round(x, 2))
-    return data
-
-@st.cache()
-def regDistr(data):
-    _cols = [col for col in data.columns if 'округ' in col]
-    _cols.append('дата')
-    _cols.append('Калининград')
-    return _cols
-
-@st.cache(ttl=cTime)
-def slicedData(data, query):
-    df = data.query(query)
-    df.set_index('дата', inplace=True)
-    df = df[(df.T != 0).any()]
-    df.reset_index(inplace=True)
-    return df.replace(0, np.nan)
-
-@st.cache(ttl=cTime)
-def irDestrib(data):
-    df = data[['дата', 'infection rate']]
-    high = df[df['infection rate'] >= 1].shape[0]
-    low = df[df['infection rate'] < 1].shape[0]
-    return high, low
-
-@st.cache(ttl=cTime)
-def proffesion(data):
-    _cols = [col for col in data.columns if '>' in col]
-    _cols.append('дата')
-    return _cols
-
-@st.cache()
-def ageDestr(data):
-    _cols = [
-        'до года',
-        'от 01 до 07', 
-        'от 07 до 14',
-        'от 15 до 17',
-        'от 18 до 29',
-        'от 30 до 49',
-        'от 50 до 64',
-        'от 65'
-    ]
-    _cols.append('дата')
-    return _cols
+__version__ = '1.2.11'
 
 
 def main(hidemenu=True):
 
+    # hide streamlit menu
     if hidemenu:
         hide_streamlit_style = """
         <style>
@@ -338,13 +27,14 @@ def main(hidemenu=True):
     st.sidebar.title('Данные о covid-19 в Калининградской области')
     st.sidebar.text('v' + __version__)
 
-    data = dataloader('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/data.csv')
-    invitro = invitroCases(data[['дата', 'total', 'positive']])
+    # prepare data for drawing
+    p, paginator = sfunc.pagemaker() # paginator
+    data = sfunc.dataloader('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/data.csv')
+    invitro = sfunc.invitroCases(data[['дата', 'total', 'positive']])
+    ds = sfunc.asidedata(data) # data for aside menu
+    high, low = sfunc.irDestrib(data)
 
-    ds = asidedata(data)
-
-    high, low = irDestrib(data)
-
+    # aside menu
     st.sidebar.markdown('Обновлено: {}'.format(ds['update']))
     st.sidebar.markdown('Всего выявлено: **{}**'.format(ds['sick']))
     st.sidebar.markdown('От населения области: **{}%**'.format(ds['proc']))
@@ -354,15 +44,19 @@ def main(hidemenu=True):
     st.sidebar.markdown('IR4 >= 1 дней: **{}**'.format(high))
     st.sidebar.markdown('IR4 < 1 дней: **{}**'.format(low))
 
-    p, paginator = pagemaker()
 
+    # main content
     page = st.radio('Данные', paginator)
 
     if page == 'intro':
         st.header(p[page])
 
         st.subheader('Описание проекта')
-        st.markdown('Проект работает с открытыми данными, собранными из различных официальных источников. Данные обновляются в конце дня. Предсталеные визуализированные данные не являются точными и не могут отражать истинную картину распространения covid-19 в Калининградской области. Автор проекта агрегирует данные с образовательной целью и не несет ответственности за их достоверность. Весь контент и код проекта предоставляется по [MIT лицензии](https://opensource.org/licenses/mit-license.php).')
+        st.markdown('Проект работает с открытыми данными, собранными из различных официальных источников. \
+            Данные обновляются в конце дня. Предсталеные визуализированные данные не являются точными и не могут \
+            отражать истинную картину распространения covid-19 в Калининградской области. Автор проекта агрегирует \
+            данные с образовательной целью и не несет ответственности за их достоверность. Весь контент и код \
+            проекта предоставляется по [MIT лицензии](https://opensource.org/licenses/mit-license.php).')
 
         st.subheader('Как это сделано?')
         st.markdown('[Статья о том, как собрано это приложение](https://konstantinklepikov.github.io/2021/01/10/zapuskaem-machine-learning-mvp.html)')
@@ -370,7 +64,8 @@ def main(hidemenu=True):
         st.markdown('[Данные](https://docs.google.com/spreadsheets/d/1iAgNVDOUa-g22_VcuEAedR2tcfTlUcbFnXV5fMiqCR8/edit#gid=1038226408)')
 
         st.subheader('Изменения в версиях')
-        st.markdown('**v1.2** Улушено отображение на мобильных устройствах. Оптимизирована скорость загрузки страницы. Добавлены IR7 и распределение IR, распределения, данные Росстата, invitro, вакцинация.')
+        st.markdown('**v1.2** Улушено отображение на мобильных устройствах. Оптимизирована скорость загрузки \
+            страницы. Добавлены IR7 и распределение IR, распределения, данные Росстата, invitro, вакцинация.')
         st.markdown('**v1.1** Добавлена обработка данных и вывод основных визуализаций.')
 
         st.subheader('Контакты')
@@ -380,7 +75,8 @@ def main(hidemenu=True):
         st.markdown('[Телеграм](https://t.me/KlepikovKonstantin)')
         st.markdown('[Фейсбук](https://facebook.com/konstatin.klepikov)')
 
-        st.markdown('К сожалению официальные службы не поделились со мной имеющимися историческими данными. Буду благодарен за любой источник данных, если таковой имеется - пишите в [телеграм](https://t.me/KlepikovKonstantin).')
+        st.markdown('К сожалению официальные службы не поделились со мной имеющимися историческими данными. Буду благодарен \
+            за любой источник данных, если таковой имеется - пишите в [телеграм](https://t.me/KlepikovKonstantin).')
         st.image('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/main/img/answer.png', use_column_width=True)
     
     elif page == 'cases':
@@ -417,7 +113,8 @@ def main(hidemenu=True):
 
         # invitro cases
         st.subheader('Данные о случаях, выявленных в сети клиник Invitro (IgG)')
-        st.markdown('Нет сведений о том, что данные случаи учитываются в статистике Роспотребнадзора. Сведения получены на сайте [invitro.ru](https://invitro.ru/l/invitro_monitor/)')
+        st.markdown('Нет сведений о том, что данные случаи учитываются в статистике Роспотребнадзора. Сведения \
+            получены на сайте [invitro.ru](https://invitro.ru/l/invitro_monitor/)')
 
         ch = Linear(
             'Кейсы в Invitro', 
@@ -442,7 +139,8 @@ def main(hidemenu=True):
         st.header(p[page])
 
         # ir4
-        st.markdown('IR4 расчитывается по методике Роспотребнадзора - как отношение количества заболевших за прошедшие 4 дня к количеству заболевших за предыдущие прошедшие 4 дня.')
+        st.markdown('IR4 расчитывается по методике Роспотребнадзора - как отношение количества заболевших за прошедшие \
+            4 дня к количеству заболевших за предыдущие прошедшие 4 дня.')
         ch = Linear(
             'Infection Rate 4 days', 
             data[['дата', 'infection rate']], 
@@ -500,7 +198,8 @@ def main(hidemenu=True):
         st.altair_chart(ch.emptychart())
 
         # hospital death data
-        st.markdown('Информация об умерших в палатах, отведенных для больных для больных пневмонией/covid предоставлялась мед.службами по запросу [newkaliningrad.ru](https://www.newkaliningrad.ru/)')
+        st.markdown('Информация об умерших в палатах, отведенных для больных для больных пневмонией/covid предоставлялась \
+            мед.службами по запросу [newkaliningrad.ru](https://www.newkaliningrad.ru/)')
         ch = Linear(
             'умерли в палатах для ковид/пневмонии', 
             data[['дата', 'умерли в палатах для ковид/пневмония с 1 апреля']].query("'2020-11-01' <= дата & `умерли в палатах для ковид/пневмония с 1 апреля` > 0"), 
@@ -513,7 +212,7 @@ def main(hidemenu=True):
         st.altair_chart(ch.emptychart())
 
         # rosstat death
-        rosstat = dataloader('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/rosstat.csv')
+        rosstat = sfunc.dataloader('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/rosstat.csv')
         rosstat['Месяц'] = pd.to_datetime(rosstat['Месяц'], dayfirst=True)
         ch = Area(
             'Данные Росстата о смертности с диагнозом COVID-19', 
@@ -553,7 +252,8 @@ def main(hidemenu=True):
 
     elif page == 'capacity':
         st.header(p[page])
-        st.markdown('Активные случаи - это заразившиеся минус выписанные и умершие. Ежедневные данные о количестве болеющих и госпитализированных не проситавляются. Данные о загруженности больниц предоставлены нерегулярно.')
+        st.markdown('Активные случаи - это заразившиеся минус выписанные и умершие. Ежедневные данные о количестве \
+            болеющих и госпитализированных не проситавляются. Данные о загруженности больниц предоставлены нерегулярно.')
 
         # cumsum minus exit
         ch = Linear(
@@ -567,8 +267,9 @@ def main(hidemenu=True):
         st.altair_chart(ch.emptychart())
 
         # hospital places
-        df = slicedData(
-            data[['дата', 'доступно под ковид', 'занято под ковид', 'доступно ИВЛ', 'занято ИВЛ', 'доступно под ковид и пневмонию', 'занято под ковид и пневмонию']],
+        df = sfunc.slicedData(
+            data[['дата', 'доступно под ковид', 'занято под ковид', 'доступно ИВЛ', 'занято ИВЛ', 'доступно под ковид и пневмонию', 
+                'занято под ковид и пневмонию']],
             "'2020-11-01' <= дата "
             )
         ch = Point(
@@ -617,7 +318,8 @@ def main(hidemenu=True):
 
         # invitro tests
         st.subheader('Данные о тестах, проведенных в сети клиник Invitro (IgG)')
-        st.markdown('Нет сведений о том, что данные о тестах invitro учитываются в статистике Роспотребнадзора. Сведения получены на сайте [invitro.ru](https://invitro.ru/l/invitro_monitor/)')
+        st.markdown('Нет сведений о том, что данные о тестах invitro учитываются в статистике Роспотребнадзора. \
+            Сведения получены на сайте [invitro.ru](https://invitro.ru/l/invitro_monitor/)')
 
         ch = Linear(
             'Кейсы в Invitro', 
@@ -660,7 +362,7 @@ def main(hidemenu=True):
         st.altair_chart(ch.selectionchart())
 
         # vaccination outcome
-        df = slicedData(
+        df = sfunc.slicedData(
             data[['дата', 'компонент 1', 'компонент 2']],
             "'2020-08-01' <= дата "
             )
@@ -690,7 +392,7 @@ def main(hidemenu=True):
         st.altair_chart(ch.selectionchart())
 
         # All regions
-        _cols = regDistr(data)
+        _cols = sfunc.regDistr(data)
         ch = Area(
             'Распределение случаев по региону', 
             data[_cols], 
@@ -718,7 +420,7 @@ def main(hidemenu=True):
         st.altair_chart(ch.selectionchart())
 
         # profession diagram
-        _colsPro = proffesion(data)
+        _colsPro = sfunc.proffesion(data)
         ch = Area(
             'Распределение случаев по роду деятельности', 
             data[_colsPro], 
@@ -743,7 +445,7 @@ def main(hidemenu=True):
         st.altair_chart(ch.selectionchart())
 
         # age destribution
-        _colsAge = ageDestr(data)
+        _colsAge = sfunc.ageDestr(data)
         ch = Area(
             'Распределение случаев по возрасту', 
             data[_colsAge], 
