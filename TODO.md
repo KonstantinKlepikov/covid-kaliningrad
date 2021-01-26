@@ -2,7 +2,7 @@
 
 - [ ] data aggregation
 
-- [ ] doc strings and package architecture
+- [x] doc strings and package architecture
 
 - [ ] RosPotreBnadsor page parsing
 
