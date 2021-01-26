@@ -3,6 +3,10 @@ import pandas as pd
 import dataLoader as dl
 
 
+"""Clean and convert pandas DataFrame data of municipality infection cases destribution, 
+and save it as .csv.
+"""
+
 file_id = '1Gt8Rn8Md4FJRJ7f44h53v1uvCCpYh-qmZVe5mayedCA'
 file_url = 'https://docs.google.com/spreadsheets/d/{file_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}'
 sheets = ['munic']

@@ -7,23 +7,48 @@ import altair as alt
 
 class DrawChart(ABC):
 
-    """Type of available interpolation
+    """ ABC class for draw charts
 
-        basis
-        basis-open
-        basis-closed
-        bundle
-        cardinal
-        cardinal-open
-        cardinal-closed
-        catmull-rom
-        linear
-        linear-closed
-        monotone
-        natural
-        step
-        step-before
-        step-after
+        Args:
+            title (string): title for chart
+
+            data (pandas DataFrame): data for chart drawing
+
+            target (string): axis X, default'дата'
+            
+            type_ (string): type of representation data, default 'quantitative'
+
+            interpolate (string): type of line interpolation on chart, default 'linear'
+                Type of available interpolation:
+                basis
+                basis-open
+                basis-closed
+                bundle
+                cardinal
+                cardinal-open
+                cardinal-closed
+                catmull-rom
+                linear
+                linear-closed
+                monotone
+                natural
+                step
+                step-before
+                step-after
+            
+            point (bool): markers on chart are pointed, default False
+
+            height (int): height of chart window, default 600
+
+            width (int): width of chart window, default 800
+
+            scheme (string): color scheme of chart lines, default 'category10'
+                [more information](https://vega.github.io/vega/docs/schemes/)
+
+            level (bool): is available baseline, default False
+
+            poly (int): is drawing polynomial regression, default None
+                numerical define degree of regression
     """
 
     def __init__(self, title, data, target='дата', type_='quantitative', interpolate='linear', point=False, height=600, 
@@ -45,8 +70,10 @@ class DrawChart(ABC):
     def draw(self):
         pass
 
-    def select(self):
-        # Create a selection that chooses the nearest point & selects based on x-value
+    def _select(self):
+        """Create a selection that chooses the nearest point & selects based on x-value
+        """
+
         nearest = alt.selection(
             type='single',
             nearest=True,
@@ -127,6 +154,9 @@ class DrawChart(ABC):
         )
 
     def leanchart(self):
+        """Simple selection on chart
+        """
+
         self.chart = alt.layer(
             self.line, self.selectors, self.rules
         ).properties(
@@ -138,6 +168,9 @@ class DrawChart(ABC):
         )
 
     def richchart(self):
+        """Complicated selection on chart
+        """
+
         self.chart = alt.layer(
             self.line, self.selectors, self.points, self.rules, self.text, self.x_text
         ).properties(
@@ -149,6 +182,12 @@ class DrawChart(ABC):
         )
 
     def selectionchart(self):
+        """Chart with bottom time period selection
+
+        Returns:
+            [obj]: [altair chart object with time selection chart]
+        """
+
         brush = alt.selection(type='interval', encodings=['x'])
         upper = self.chart.encode(
             alt.X('date:T', scale=alt.Scale(domain=brush))
@@ -184,8 +223,13 @@ class DrawChart(ABC):
         return upper & lower
 
     def baselinechart(self):
-        # Create a chart
-        # With baseline == level
+        """Baseline on chart
+
+        Returns:
+            [obj]: [altair chart object with baseline]
+        """
+
+        # baseline == level
         rule = alt.Chart(pd.DataFrame({'y': [self.level]})
             ).mark_rule().encode(
                 y='y',
@@ -194,6 +238,12 @@ class DrawChart(ABC):
         return self.chart + rule
 
     def polynomialchart(self):
+        """Polynomial regression addon for chart
+
+        Returns:
+            [obj]: [altair chart object with polinimial regression]
+        """
+
         degree_list = self.poly,
         polynomial_fit = [
             self.line.transform_regression(
@@ -207,32 +257,46 @@ class DrawChart(ABC):
         return alt.layer(self.chart, *polynomial_fit)
 
     def emptychart(self):
+        """Chart
+
+        Returns:
+            [obj]: [altair chart object]
+        """
+
         return self.chart
 
 
 class Linear(DrawChart):
+    """Draw linear chart
+    """
 
     def draw(self):
         self.draw = alt.Chart(self.data).mark_line(interpolate=self.interpolate, point=self.point)
-        self.select()
+        self._select()
 
 
 class Point(DrawChart):
+    """Draw point chart
+    """
 
     def draw(self):
         self.draw = alt.Chart(self.data).mark_point(interpolate=self.interpolate)
-        self.select()
+        self._select()
 
 
 class Area(DrawChart):
+    """Draw area linear chart
+    """
 
     def draw(self):
         self.draw = alt.Chart(self.data).mark_area(interpolate=self.interpolate)
-        self.select()
+        self._select()
 
 
 class Bar(DrawChart):
+    """Draw histogram
+    """
 
     def draw(self):
         self.draw = alt.Chart(self.data).mark_bar()
-        self.select()
+        self._select()

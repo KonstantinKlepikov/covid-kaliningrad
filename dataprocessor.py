@@ -6,6 +6,9 @@ import dataLoader as dl
 
 
 def main():
+    """Clean and convert pandas DataFrame main data, and save it as .csv. Function is used
+    in github acrion. For details look at .github/workflows/dataloader.yml
+    """
 
     file_id = '1iAgNVDOUa-g22_VcuEAedR2tcfTlUcbFnXV5fMiqCR8'
     file_url = 'https://docs.google.com/spreadsheets/d/{file_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}'

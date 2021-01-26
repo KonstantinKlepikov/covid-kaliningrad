@@ -420,7 +420,7 @@ def main(hidemenu=True):
         st.altair_chart(ch.selectionchart())
 
         # profession diagram
-        _colsPro = sfunc.proffesion(data)
+        _colsPro = sfunc.profession(data)
         ch = Area(
             'Распределение случаев по роду деятельности', 
             data[_colsPro], 
