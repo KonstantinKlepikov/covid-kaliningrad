@@ -1,14 +1,19 @@
+import os
+import re
 import numpy as np
 import pandas as pd
 from bs4 import BeautifulSoup
-import os
-import re
 import dataLoader as dl
 
 path = 'parse_invitro/invitro.html'
 forparse = os.path.realpath(path)
 
 def htmlParse(path):
+    """[Parse data from html (Invitro clinic data)
+
+    Returns:
+        pandas DataFrame: parsed data
+    """
 
     column_names = ['date', 'total', 'negative', 'positive']
     df = pd.DataFrame(columns = column_names)
