@@ -1,9 +1,7 @@
 import os
-from abc import ABC, abstractmethod
 import streamlit as st
 import numpy as np
 import pandas as pd
-import altair as alt
 import supportFunction as sfunc
 from drawTools import Linear, Point, Area, Bar
 

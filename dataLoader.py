@@ -1,7 +1,7 @@
+import os
 import requests
 import numpy as np
 import pandas as pd
-import os
 
 
 def loader(file_id, file_url, sheet_name):
