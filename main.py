@@ -482,6 +482,16 @@ def main(hidemenu=True):
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
+        # profession destribution by profession
+        st.markdown('Распределение по деятельности (подробнее)')
+        multichart = sfunc.precision('>пенсионеры', data[['дата', '>пенсионеры']])
+        for i in _colsPro:
+            if i != 'дата' and i != '>пенсионеры':
+                multichart = multichart & sfunc.precision(i, data[['дата', i]])
+        st.altair_chart(
+            multichart
+            )
+
         # sex
         ch = Area(
             'Распределение случаев по полу', 
@@ -504,6 +514,16 @@ def main(hidemenu=True):
         ch.draw()
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
+
+        # age destribution by age
+        st.markdown('Распределение по возрасту (подробнее).')
+        multichart = sfunc.precision('до года', data[['дата', 'до года']])
+        for i in _colsAge:
+            if i != 'дата' and i != 'до года':
+                multichart = multichart & sfunc.precision(i, data[['дата', i]])
+        st.altair_chart(
+            multichart
+            )
 
         # source
         ch = Area(
