@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+from drawTools import Linear, Point, Area, Bar
 
 
 """Support functions for data visualistion, wraped with cache decorator
@@ -173,3 +174,15 @@ def ageDestr(data):
     ]
     _cols.append('дата')
     return _cols
+
+@st.cache(allow_output_mutation=True)
+def precision(title, data):
+    ch = Linear(
+        title, 
+        data, 
+        height=120,
+        )
+    ch.legend=None
+    ch.draw()
+    ch.richchart()
+    return ch.emptychart()

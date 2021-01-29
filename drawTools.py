@@ -64,6 +64,13 @@ class DrawChart(ABC):
         self.scheme = scheme
         self.level = level
         self.poly = poly
+        self.legend = alt.Legend(
+            labelFontSize=16, 
+            labelColor='#808080', 
+            orient='top-left', title='', 
+            labelLimit=320,
+            zindex=1
+            )
 
     @abstractmethod
     def draw(self):
@@ -99,12 +106,7 @@ class DrawChart(ABC):
                 ),
             alt.Color('показатель:N',
                 scale=alt.Scale(scheme=self.scheme),
-                legend=alt.Legend(
-                    labelFontSize=16, 
-                    labelColor='#808080', 
-                    orient='top-left', title='', 
-                    labelLimit=320
-                    )
+                legend=self.legend
                 ),
             opacity=alt.condition(self.leg, 
                 alt.value(1), 
