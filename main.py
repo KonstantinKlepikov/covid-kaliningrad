@@ -138,7 +138,7 @@ def main(hidemenu=True):
         ch.legend=None
         ch.draw()
         ch.richchart()
-        st.altair_chart(ch.selectionchart())
+        st.altair_chart(ch.emptychart())
 
 
     elif page == 'infection rate':
@@ -189,6 +189,7 @@ def main(hidemenu=True):
             'умерли от ковид', 
             data[['дата', 'умерли от ковид']],
             height=400, 
+            interpolate='step', 
             scheme='set1', 
             poly=7,
             )
@@ -215,7 +216,7 @@ def main(hidemenu=True):
         ch = Linear(
             'умерли в палатах для ковид/пневмонии', 
             data[['дата', 'умерли в палатах для ковид/пневмония с 1 апреля']].query("'2020-11-01' <= дата & `умерли в палатах для ковид/пневмония с 1 апреля` > 0"), 
-            height=600, 
+            height=400, 
             point=True, 
             scheme='set1'
             )
@@ -231,7 +232,7 @@ def main(hidemenu=True):
             'Данные Росстата о смертности с диагнозом COVID-19', 
             rosstat, 
             target='Месяц',
-            height=600,
+            height=400,
             width=600
             )
         ch.draw()
@@ -292,6 +293,7 @@ def main(hidemenu=True):
             'Доступные места', 
             df, 
             height=800, 
+            grid=False, 
             )
         ch.draw()
         ch.richchart()
@@ -311,6 +313,17 @@ def main(hidemenu=True):
         ch.draw()
         ch.richchart()
         st.altair_chart(ch.selectionchart())
+
+        # tests cumulative
+        ch = Linear(
+            'Общее количество тестов аккумулировано', 
+            data[['дата', 'кол-во тестов кумул']], 
+            height=400, 
+            )
+        ch.legend=None
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.emptychart())
 
         # tests and cases
         st.markdown('Для наглядности, количество тестов разделено на 10 для приведенных графиков.')
@@ -349,12 +362,13 @@ def main(hidemenu=True):
 
         # invitro cases cumulative
         ch = Linear(
-            'Тесты в Invitro аккумулировано', 
-            data[['дата', 'positivecum', 'negativecum']]
+            'Тесты в Invitro аккумулировано (на фоне общего числа официально зафиксированных случаев)', 
+            data[['дата', 'кумул. случаи', 'positivecum', 'negativecum']], 
+            height=600
             )
         ch.draw()
         ch.richchart()
-        st.altair_chart(ch.selectionchart())
+        st.altair_chart(ch.emptychart())
 
         # invitro cases shape
         ch = Linear(
@@ -373,7 +387,7 @@ def main(hidemenu=True):
         st.markdown('В значение поступившей вакцины и к значениям привитых официальной статистикой отнесены 300 доз \
             экспериментальной вакцины (20% плацебо). Сообщалось, что прививку получили чиновники (губернатор Калининградской области)\
             Кроме того, сообщалось, что по оканчанию эксперимента все, кто получаил плацебо, будут привиты действующим препаратом.\
-            Никаких сведений о том, что именно так это и было реализовано, нет.')
+            Сведений о том, что все участники эксперимента действительно получиили настоящий препарат не имеется.')
 
         # vaccine income
         ch = Area(
@@ -506,14 +520,14 @@ def main(hidemenu=True):
         st.altair_chart(ch.selectionchart())
 
         # age destribution by age
-        st.markdown('Распределение по возрасту (подробнее).')
-        multichart = sfunc.precision('до года', data[['дата', 'до года']])
-        for i in _colsAge:
-            if i != 'дата' and i != 'до года':
-                multichart = multichart & sfunc.precision(i, data[['дата', i]])
-        st.altair_chart(
-            multichart
-            )
+        # st.markdown('Распределение по возрасту (подробнее).')
+        # multichart = sfunc.precision('до года', data[['дата', 'до года']])
+        # for i in _colsAge:
+        #     if i != 'дата' and i != 'до года':
+        #         multichart = multichart & sfunc.precision(i, data[['дата', i]])
+        # st.altair_chart(
+        #     multichart
+        #     )
 
         # source
         ch = Area(

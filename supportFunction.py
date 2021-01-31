@@ -181,6 +181,7 @@ def precision(title, data):
         title, 
         data, 
         height=120,
+        grid=False
         )
     ch.legend=None
     ch.draw()
