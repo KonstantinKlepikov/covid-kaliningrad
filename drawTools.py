@@ -48,10 +48,12 @@ class DrawChart(ABC):
 
             poly (int): is drawing polynomial regression, default None
                 numerical define degree of regression
+
+            grid (bool): is used a grid on main chart, default True
     """
 
     def __init__(self, title, data, target='дата', type_='quantitative', interpolate='linear', point=False, height=600, 
-        width=800, scheme='category10', level=False, poly=None):
+        width=800, scheme='category10', level=False, poly=None, grid=True):
 
         self.title = title
         self.target = target
@@ -64,6 +66,7 @@ class DrawChart(ABC):
         self.scheme = scheme
         self.level = level
         self.poly = poly
+        self.grid = grid
         self.legend = alt.Legend(
             labelFontSize=16, 
             labelColor='#808080', 
@@ -96,13 +99,13 @@ class DrawChart(ABC):
             alt.X(self.target, 
                 type='temporal', 
                 title=' ', 
-                axis=alt.Axis(grid=True, offset=10)
+                axis=alt.Axis(grid=self.grid, offset=10)
                 ),
             alt.Y('y', 
                 type=self.type_, 
                 title='количество', 
                 scale=alt.Scale(zero=False),
-                axis=alt.Axis(grid=True, offset=10)
+                axis=alt.Axis(grid=self.grid, offset=10)
                 ),
             alt.Color('показатель:N',
                 scale=alt.Scale(scheme=self.scheme),

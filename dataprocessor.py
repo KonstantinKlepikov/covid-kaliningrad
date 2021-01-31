@@ -60,7 +60,8 @@ def main():
     data['IR7'] = data['IR7'].astype(np.float16)
     data['отношение'] = data['отношение'].astype(np.float16)
     data['отношение'] = data['отношение'].apply(lambda x: round(x, 2))
-    for i in data.columns.difference(['дата', 'infection rate', 'IR7', 'отношение', 'кол-во тестов / 10']):
+    data['кол-во тестов кумул'] = data['кол-во тестов кумул'].astype(np.int32)
+    for i in data.columns.difference(['дата', 'infection rate', 'IR7', 'отношение', 'кол-во тестов / 10', 'кол-во тестов кумул']):
         data[i] = data[i].astype(np.int16)
 
 
