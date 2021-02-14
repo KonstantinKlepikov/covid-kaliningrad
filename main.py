@@ -6,7 +6,7 @@ import supportFunction as sfunc
 from drawTools import Linear, Point, Area, Bar
 
 
-__version__ = '1.2.14'
+__version__ = '1.2.15'
 
 
 def main(hidemenu=True):
@@ -31,6 +31,8 @@ def main(hidemenu=True):
     invitro = sfunc.invitroCases(data[['дата', 'total', 'positive']])
     ds = sfunc.asidedata(data) # data for aside menu
     high, low = sfunc.irDestrib(data)
+    _colsPro = sfunc.profession(data)
+    _colsReg = sfunc.regDistr(data)
 
     # aside menu
     st.sidebar.markdown('Обновлено: {}'.format(ds['update']))
@@ -106,7 +108,6 @@ def main(hidemenu=True):
             'Количество случаев аккумулировано', 
             data[['дата', 'кумул. случаи']], 
             height=400, 
-            scheme='set1'
             )
         ch.legend=None
         ch.draw()
@@ -121,7 +122,6 @@ def main(hidemenu=True):
         ch = Linear(
             'Кейсы в Invitro', 
             data[['дата', 'positive']],
-            scheme='set1',
             height=400
             )
         ch.legend=None
@@ -150,7 +150,6 @@ def main(hidemenu=True):
         ch = Linear(
             'Infection Rate 4 days', 
             data[['дата', 'infection rate']], 
-            scheme='set1',
             level=1
             )
         ch.legend=None
@@ -190,7 +189,6 @@ def main(hidemenu=True):
             data[['дата', 'умерли от ковид']],
             height=400, 
             interpolate='step', 
-            scheme='set1', 
             poly=7,
             )
         ch.legend=None
@@ -203,7 +201,6 @@ def main(hidemenu=True):
             'смертельные случаи нарастающим итогом', 
             data[['дата', 'кумул.умерли']], 
             height=400, 
-            scheme='set1'
             )
         ch.legend=None
         ch.draw()
@@ -218,7 +215,6 @@ def main(hidemenu=True):
             data[['дата', 'умерли в палатах для ковид/пневмония с 1 апреля']].query("'2020-11-01' <= дата & `умерли в палатах для ковид/пневмония с 1 апреля` > 0"), 
             height=400, 
             point=True, 
-            scheme='set1'
             )
         ch.legend=None
         ch.draw()
@@ -233,7 +229,7 @@ def main(hidemenu=True):
             rosstat, 
             target='Месяц',
             height=400,
-            width=600
+            width=800
             )
         ch.draw()
         ch.leanchart()
@@ -248,7 +244,6 @@ def main(hidemenu=True):
         ch = Linear(
             'Выписаны', 
             data[['дата', 'всего', 'выписали']], 
-            scheme='set1'
             )
         ch.draw()
         ch.richchart()
@@ -259,7 +254,6 @@ def main(hidemenu=True):
             'Выписаны из больниц нарастающим итогом', 
             data[['дата', 'кумул. случаи', 'кумул.выписаны']], 
             height=400, 
-            scheme='set1'
             )
         ch.draw()
         ch.richchart()
@@ -276,7 +270,6 @@ def main(hidemenu=True):
             'Активные случаи нарастающим итогом', 
             data[['дата', 'кумул.активные']], 
             height=400, 
-            scheme='set1'
             )
         ch.legend=None
         ch.draw()
@@ -307,7 +300,6 @@ def main(hidemenu=True):
         ch = Linear(
             'Общее количество тестов', 
             data[['дата', 'кол-во тестов']], 
-            scheme='accent'
             )
         ch.legend=None
         ch.draw()
@@ -341,7 +333,6 @@ def main(hidemenu=True):
             'Тестирование и выписка', 
             data[['дата', 'выписали', 'кол-во тестов / 10']], 
             height=500,
-            scheme='set1'
             )
         ch.draw()
         ch.richchart()
@@ -360,6 +351,17 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.selectionchart())
 
+        # invitro tests cumulative
+        ch = Linear(
+            'Тесты в Invitro аккумулирован', 
+            data[['дата', 'totalcum']], 
+            height=600
+            )
+        ch.legend=None
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.emptychart())
+
         # invitro cases cumulative
         ch = Linear(
             'Тесты в Invitro аккумулировано (на фоне общего числа официально зафиксированных случаев)', 
@@ -374,7 +376,6 @@ def main(hidemenu=True):
         ch = Linear(
             '% положительных тестов в Invitro', 
             invitro[['дата', 'shape']],
-            scheme='set1'
             )
         ch.legend=None
         ch.draw()
@@ -394,7 +395,6 @@ def main(hidemenu=True):
             'Поступиление вакцин', 
             data[['дата', 'поступило доз вакцин']],
             interpolate='step', 
-            scheme='set1',
             height=400
             )
         ch.legend=None
@@ -426,29 +426,29 @@ def main(hidemenu=True):
             data[['дата', 'Калининград', 'все кроме Калининграда']], 
             interpolate='step', 
             height=400,
-            scheme='set1'
             )
         ch.draw()
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
         # All regions
-        _cols = sfunc.regDistr(data)
         ch = Area(
             'Распределение случаев по региону', 
-            data[_cols], 
+            data[_colsReg], 
             interpolate='step', 
             height=600,
-            scheme='tableau20'
             )
         ch.draw()
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
+
+    elif page == 'regions detail':
+
         # regions by city
-        st.markdown('Распределение по регионам (подробнее)')
+        st.header('Распределение по регионам (подробнее)')
         multichart = sfunc.precision('Калининград', data[['дата', 'Калининград']])
-        for i in _cols:
+        for i in _colsReg:
             if i != 'дата' and i != 'Калининград':
                 multichart = multichart & sfunc.precision(i, data[['дата', i]])
         st.altair_chart(
@@ -465,34 +465,21 @@ def main(hidemenu=True):
             data[['дата', 'воспитанники/учащиеся', 'работающие', 'служащие', 'неработающие и самозанятые', 'пенсионеры']], 
             interpolate='step', 
             height=400,
-            scheme='tableau20'
             )
         ch.draw()
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
         # profession diagram
-        _colsPro = sfunc.profession(data)
         ch = Area(
             'Распределение случаев по роду деятельности', 
             data[_colsPro], 
             interpolate='step', 
             height=600,
-            scheme='tableau20'
             )
         ch.draw()
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
-
-        # profession destribution by profession
-        st.markdown('Распределение по деятельности (подробнее)')
-        multichart = sfunc.precision('>пенсионеры', data[['дата', '>пенсионеры']])
-        for i in _colsPro:
-            if i != 'дата' and i != '>пенсионеры':
-                multichart = multichart & sfunc.precision(i, data[['дата', i]])
-        st.altair_chart(
-            multichart
-            )
 
         # sex
         ch = Area(
@@ -500,7 +487,6 @@ def main(hidemenu=True):
             data[['дата', 'мужчины', 'женщины']], 
             interpolate='step', 
             height=400,
-            scheme='tableau20'
             )
         ch.draw()
         ch.leanchart()
@@ -513,21 +499,10 @@ def main(hidemenu=True):
             data[_colsAge], 
             interpolate='step', 
             height=400,
-            scheme='tableau20'
             )
         ch.draw()
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
-
-        # age destribution by age
-        # st.markdown('Распределение по возрасту (подробнее).')
-        # multichart = sfunc.precision('до года', data[['дата', 'до года']])
-        # for i in _colsAge:
-        #     if i != 'дата' and i != 'до года':
-        #         multichart = multichart & sfunc.precision(i, data[['дата', i]])
-        # st.altair_chart(
-        #     multichart
-        #     )
 
         # source
         ch = Area(
@@ -535,18 +510,23 @@ def main(hidemenu=True):
             data[['дата', 'завозные', 'контактные', 'не установлены']], 
             interpolate='step', 
             height=400,
-            scheme='tableau20'
             )
         ch.draw()
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
+    
+    elif page == 'demographics detail':
 
-    elif page == 'correlations':
-        st.header(p[page])
+        # profession destribution by profession
+        st.header('Распределение по деятельности (подробнее)')
+        multichart = sfunc.precision('>пенсионеры', data[['дата', '>пенсионеры']])
+        for i in _colsPro:
+            if i != 'дата' and i != '>пенсионеры':
+                multichart = multichart & sfunc.precision(i, data[['дата', i]])
+        st.altair_chart(
+            multichart
+            )
 
-        st.text('soon...')
-        # report = ProfileReport(data.drop(['учебные учреждения'], axis=1))
-        # st_profile_report(report)
 
 main()

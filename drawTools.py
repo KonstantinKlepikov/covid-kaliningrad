@@ -4,6 +4,18 @@ import pandas as pd
 import altair as alt
 
 
+def my_color_theme():
+  return {
+    'config': {
+      'view': {'continuousHeight': 300, 'continuousWidth': 400},
+      'range': {'category': ['#4d9be6', '#e83b3b', '#0b8a8f', '#fb6b1d', '#a884f3', '#fbb954', '#1ebc73', '#f04f78', '#4d65b4', '#91db69', '#c32454', '#cd683d', '#905ea9', '#831c5d', '#0b8a8f', '#f68181', 
+'#8fd3ff', '#fca790', '#8ff8e2', '#fbff86', '#e3c896', '#0b5e65', '#eaaded', '#7a3045', '#905ea9', '#9e4539', '#ab947a', '#484a77', '#3e3546', '#966c6c', '#625565', '#30e1b9',]}
+    }
+  }
+alt.themes.register('my_color_theme', my_color_theme)
+alt.themes.enable('my_color_theme')
+
+
 class DrawChart(ABC):
 
     """ ABC class for draw charts
@@ -41,9 +53,6 @@ class DrawChart(ABC):
 
             width (int): width of chart window, default 800
 
-            scheme (string): color scheme of chart lines, default 'category10'
-                [more information](https://vega.github.io/vega/docs/schemes/)
-
             level (bool): is available baseline, default False
 
             poly (int): is drawing polynomial regression, default None
@@ -53,7 +62,7 @@ class DrawChart(ABC):
     """
 
     def __init__(self, title, data, target='дата', type_='quantitative', interpolate='linear', point=False, height=600, 
-        width=800, scheme='category10', level=False, poly=None, grid=True):
+        width=800, level=False, poly=None, grid=True):
 
         self.title = title
         self.target = target
@@ -63,7 +72,6 @@ class DrawChart(ABC):
         self.point = point
         self.width = width
         self.height = height
-        self.scheme = scheme
         self.level = level
         self.poly = poly
         self.grid = grid
@@ -108,7 +116,6 @@ class DrawChart(ABC):
                 axis=alt.Axis(grid=self.grid, offset=10)
                 ),
             alt.Color('показатель:N',
-                scale=alt.Scale(scheme=self.scheme),
                 legend=self.legend
                 ),
             opacity=alt.condition(self.leg, 
@@ -209,7 +216,6 @@ class DrawChart(ABC):
                 axis=alt.Axis(grid=False, labels=False)
                 ),
             alt.Color('показатель:N',
-                scale=alt.Scale(scheme=self.scheme)
                 ),
             opacity=alt.condition(self.leg, 
                 alt.value(1), 
