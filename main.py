@@ -6,7 +6,7 @@ import supportFunction as sfunc
 from drawTools import Linear, Point, Area, Bar
 
 
-__version__ = '1.2.14'
+__version__ = '1.2.15'
 
 
 def main(hidemenu=True):
