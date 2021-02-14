@@ -4,6 +4,40 @@ import pandas as pd
 import altair as alt
 
 
+vega.scheme('basic', [
+    '#201923',
+    '#fcff5d', 
+    '#7dfc00', 
+    '#0ec434', 
+    '#228c68',
+    '#8ad8e8',
+    '#235b54',
+    '#29bdab',
+    '#3998f5',
+    '#37294f',
+    '#277da7',
+    '#3750db',
+    '#f22020',
+    '#991919',
+    '#ffcba5',
+    '#e68f66',
+    '#c56133',
+    '#96341c',
+    '#632819',
+    '#ffc413',
+    '#f47a22',
+    '#2f2aa0',
+    '#b732cc',
+    '#772b9d',
+    '#f07cab',
+    '#d30b94',
+    '#edeff3',
+    '#c3a5b4',
+    '#946aa2',
+    '#5d4c86'
+    ])
+
+
 class DrawChart(ABC):
 
     """ ABC class for draw charts

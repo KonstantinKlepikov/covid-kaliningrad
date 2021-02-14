@@ -31,6 +31,8 @@ def main(hidemenu=True):
     invitro = sfunc.invitroCases(data[['дата', 'total', 'positive']])
     ds = sfunc.asidedata(data) # data for aside menu
     high, low = sfunc.irDestrib(data)
+    _colsPro = sfunc.profession(data)
+    _colsReg = sfunc.regDistr(data)
 
     # aside menu
     st.sidebar.markdown('Обновлено: {}'.format(ds['update']))
@@ -433,10 +435,9 @@ def main(hidemenu=True):
         st.altair_chart(ch.selectionchart())
 
         # All regions
-        _cols = sfunc.regDistr(data)
         ch = Area(
             'Распределение случаев по региону', 
-            data[_cols], 
+            data[_colsReg], 
             interpolate='step', 
             height=600,
             scheme='tableau20'
@@ -445,10 +446,13 @@ def main(hidemenu=True):
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
+
+    elif page == 'regions detail':
+
         # regions by city
-        st.markdown('Распределение по регионам (подробнее)')
+        st.header('Распределение по регионам (подробнее)')
         multichart = sfunc.precision('Калининград', data[['дата', 'Калининград']])
-        for i in _cols:
+        for i in _colsReg:
             if i != 'дата' and i != 'Калининград':
                 multichart = multichart & sfunc.precision(i, data[['дата', i]])
         st.altair_chart(
@@ -472,7 +476,6 @@ def main(hidemenu=True):
         st.altair_chart(ch.selectionchart())
 
         # profession diagram
-        _colsPro = sfunc.profession(data)
         ch = Area(
             'Распределение случаев по роду деятельности', 
             data[_colsPro], 
@@ -483,16 +486,6 @@ def main(hidemenu=True):
         ch.draw()
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
-
-        # profession destribution by profession
-        st.markdown('Распределение по деятельности (подробнее)')
-        multichart = sfunc.precision('>пенсионеры', data[['дата', '>пенсионеры']])
-        for i in _colsPro:
-            if i != 'дата' and i != '>пенсионеры':
-                multichart = multichart & sfunc.precision(i, data[['дата', i]])
-        st.altair_chart(
-            multichart
-            )
 
         # sex
         ch = Area(
@@ -519,16 +512,6 @@ def main(hidemenu=True):
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
-        # age destribution by age
-        # st.markdown('Распределение по возрасту (подробнее).')
-        # multichart = sfunc.precision('до года', data[['дата', 'до года']])
-        # for i in _colsAge:
-        #     if i != 'дата' and i != 'до года':
-        #         multichart = multichart & sfunc.precision(i, data[['дата', i]])
-        # st.altair_chart(
-        #     multichart
-        #     )
-
         # source
         ch = Area(
             'Распределение по источнику заражения', 
@@ -541,12 +524,18 @@ def main(hidemenu=True):
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
+    
+    elif page == 'demographics detail':
 
-    elif page == 'correlations':
-        st.header(p[page])
+        # profession destribution by profession
+        st.header('Распределение по деятельности (подробнее)')
+        multichart = sfunc.precision('>пенсионеры', data[['дата', '>пенсионеры']])
+        for i in _colsPro:
+            if i != 'дата' and i != '>пенсионеры':
+                multichart = multichart & sfunc.precision(i, data[['дата', i]])
+        st.altair_chart(
+            multichart
+            )
 
-        st.text('soon...')
-        # report = ProfileReport(data.drop(['учебные учреждения'], axis=1))
-        # st_profile_report(report)
 
 main()

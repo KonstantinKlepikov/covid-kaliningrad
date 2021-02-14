@@ -42,8 +42,9 @@ def pagemaker():
     'tests': 'Тестирование', 
     'vaccination': 'Вакцинация',
     'regions': 'Регионы',
+    'regions detail': 'Регионы (детально)',
     'demographics': 'Демография',
-    'correlations': 'Корреляции'
+    'demographics detail': 'Демография (детально)'
     }
     paginator = [n for n in p.keys()]
 
