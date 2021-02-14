@@ -108,7 +108,6 @@ def main(hidemenu=True):
             'Количество случаев аккумулировано', 
             data[['дата', 'кумул. случаи']], 
             height=400, 
-            scheme='set1'
             )
         ch.legend=None
         ch.draw()
@@ -123,7 +122,6 @@ def main(hidemenu=True):
         ch = Linear(
             'Кейсы в Invitro', 
             data[['дата', 'positive']],
-            scheme='set1',
             height=400
             )
         ch.legend=None
@@ -152,7 +150,6 @@ def main(hidemenu=True):
         ch = Linear(
             'Infection Rate 4 days', 
             data[['дата', 'infection rate']], 
-            scheme='set1',
             level=1
             )
         ch.legend=None
@@ -192,7 +189,6 @@ def main(hidemenu=True):
             data[['дата', 'умерли от ковид']],
             height=400, 
             interpolate='step', 
-            scheme='set1', 
             poly=7,
             )
         ch.legend=None
@@ -205,7 +201,6 @@ def main(hidemenu=True):
             'смертельные случаи нарастающим итогом', 
             data[['дата', 'кумул.умерли']], 
             height=400, 
-            scheme='set1'
             )
         ch.legend=None
         ch.draw()
@@ -220,7 +215,6 @@ def main(hidemenu=True):
             data[['дата', 'умерли в палатах для ковид/пневмония с 1 апреля']].query("'2020-11-01' <= дата & `умерли в палатах для ковид/пневмония с 1 апреля` > 0"), 
             height=400, 
             point=True, 
-            scheme='set1'
             )
         ch.legend=None
         ch.draw()
@@ -235,7 +229,7 @@ def main(hidemenu=True):
             rosstat, 
             target='Месяц',
             height=400,
-            width=600
+            width=800
             )
         ch.draw()
         ch.leanchart()
@@ -250,7 +244,6 @@ def main(hidemenu=True):
         ch = Linear(
             'Выписаны', 
             data[['дата', 'всего', 'выписали']], 
-            scheme='set1'
             )
         ch.draw()
         ch.richchart()
@@ -261,7 +254,6 @@ def main(hidemenu=True):
             'Выписаны из больниц нарастающим итогом', 
             data[['дата', 'кумул. случаи', 'кумул.выписаны']], 
             height=400, 
-            scheme='set1'
             )
         ch.draw()
         ch.richchart()
@@ -278,7 +270,6 @@ def main(hidemenu=True):
             'Активные случаи нарастающим итогом', 
             data[['дата', 'кумул.активные']], 
             height=400, 
-            scheme='set1'
             )
         ch.legend=None
         ch.draw()
@@ -309,7 +300,6 @@ def main(hidemenu=True):
         ch = Linear(
             'Общее количество тестов', 
             data[['дата', 'кол-во тестов']], 
-            scheme='accent'
             )
         ch.legend=None
         ch.draw()
@@ -343,7 +333,6 @@ def main(hidemenu=True):
             'Тестирование и выписка', 
             data[['дата', 'выписали', 'кол-во тестов / 10']], 
             height=500,
-            scheme='set1'
             )
         ch.draw()
         ch.richchart()
@@ -362,6 +351,17 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.selectionchart())
 
+        # invitro tests cumulative
+        ch = Linear(
+            'Тесты в Invitro аккумулирован', 
+            data[['дата', 'totalcum']], 
+            height=600
+            )
+        ch.legend=None
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.emptychart())
+
         # invitro cases cumulative
         ch = Linear(
             'Тесты в Invitro аккумулировано (на фоне общего числа официально зафиксированных случаев)', 
@@ -376,7 +376,6 @@ def main(hidemenu=True):
         ch = Linear(
             '% положительных тестов в Invitro', 
             invitro[['дата', 'shape']],
-            scheme='set1'
             )
         ch.legend=None
         ch.draw()
@@ -396,7 +395,6 @@ def main(hidemenu=True):
             'Поступиление вакцин', 
             data[['дата', 'поступило доз вакцин']],
             interpolate='step', 
-            scheme='set1',
             height=400
             )
         ch.legend=None
@@ -428,7 +426,6 @@ def main(hidemenu=True):
             data[['дата', 'Калининград', 'все кроме Калининграда']], 
             interpolate='step', 
             height=400,
-            scheme='set1'
             )
         ch.draw()
         ch.leanchart()
@@ -440,7 +437,6 @@ def main(hidemenu=True):
             data[_colsReg], 
             interpolate='step', 
             height=600,
-            scheme='tableau20'
             )
         ch.draw()
         ch.leanchart()
@@ -469,7 +465,6 @@ def main(hidemenu=True):
             data[['дата', 'воспитанники/учащиеся', 'работающие', 'служащие', 'неработающие и самозанятые', 'пенсионеры']], 
             interpolate='step', 
             height=400,
-            scheme='tableau20'
             )
         ch.draw()
         ch.leanchart()
@@ -481,7 +476,6 @@ def main(hidemenu=True):
             data[_colsPro], 
             interpolate='step', 
             height=600,
-            scheme='tableau20'
             )
         ch.draw()
         ch.leanchart()
@@ -493,7 +487,6 @@ def main(hidemenu=True):
             data[['дата', 'мужчины', 'женщины']], 
             interpolate='step', 
             height=400,
-            scheme='tableau20'
             )
         ch.draw()
         ch.leanchart()
@@ -506,7 +499,6 @@ def main(hidemenu=True):
             data[_colsAge], 
             interpolate='step', 
             height=400,
-            scheme='tableau20'
             )
         ch.draw()
         ch.leanchart()
@@ -518,7 +510,6 @@ def main(hidemenu=True):
             data[['дата', 'завозные', 'контактные', 'не установлены']], 
             interpolate='step', 
             height=400,
-            scheme='tableau20'
             )
         ch.draw()
         ch.leanchart()
