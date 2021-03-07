@@ -51,6 +51,23 @@ def pagemaker():
     return p, paginator
 
 
+@st.cache(ttl=cTime)
+def slicedData(data, query):
+    """Slice data and remove zeros for point sparced charts
+
+    Args:
+        data (pandas DataFrame): main data
+
+    Returns:
+        pandas DataFrame: prepared data
+    """
+    df = data.query(query)
+    df.set_index('дата', inplace=True)
+    df = df[(df.T != 0).any()]
+    df.reset_index(inplace=True)
+    return df.replace(0, np.nan)
+
+
 @st.cache(suppress_st_warning=True, ttl=cTime)
 def asidedata(data, people=1012512):
     """Create data for sidebar
@@ -69,6 +86,11 @@ def asidedata(data, people=1012512):
     ds['let'] = round(ds['dead'] * 100 / ds['sick'], 2)
     ds['ex'] = data['выписали'].sum()
     ds['update'] = data['дата'].iloc[-1]
+    pr = slicedData(data[['дата', 'компонент 1', 'компонент 2']], "'2020-08-01' <= дата ")
+    ds['pr1'] = int(pr['компонент 1'].iloc[-1])
+    ds['pr2'] = int(pr['компонент 2'].iloc[-1])
+    ds['prproc1'] = round(ds['pr1']* 100 / people, 2)
+    ds['prproc2'] = round(ds['pr2']* 100 / people, 2)
 
     return ds
 
@@ -103,23 +125,6 @@ def regDistr(data):
     _cols.append('дата')
     _cols.append('Калининград')
     return _cols
-
-
-@st.cache(ttl=cTime)
-def slicedData(data, query):
-    """Slice data and remove zeros for point sparced charts
-
-    Args:
-        data (pandas DataFrame): main data
-
-    Returns:
-        pandas DataFrame: prepared data
-    """
-    df = data.query(query)
-    df.set_index('дата', inplace=True)
-    df = df[(df.T != 0).any()]
-    df.reset_index(inplace=True)
-    return df.replace(0, np.nan)
 
 
 @st.cache(ttl=cTime)
