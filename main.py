@@ -66,7 +66,7 @@ def main(hidemenu=True):
         st.markdown('[Данные](https://docs.google.com/spreadsheets/d/1iAgNVDOUa-g22_VcuEAedR2tcfTlUcbFnXV5fMiqCR8/edit#gid=1038226408)')
 
         st.subheader('Изменения в версиях')
-        st.markdown('**v1.3** Улушено представление данных.')
+        st.markdown('**v1.3** Удалены выбросы из данных.')
         st.markdown('**v1.2** Улушено отображение на мобильных устройствах. Оптимизирована скорость загрузки \
             страницы. Добавлены IR7 и распределение IR, распределения, данные Росстата, invitro, вакцинация.')
         st.markdown('**v1.1** Добавлена обработка данных и вывод основных визуализаций.')
@@ -395,14 +395,13 @@ def main(hidemenu=True):
         # vaccine income
         ch = Area(
             'Поступиление вакцин', 
-            data[['дата', 'поступило доз вакцин']],
-            interpolate='step', 
+            data[['дата', 'поступило кумулятивно']],
             height=400
             )
         ch.legend=None
         ch.draw()
         ch.richchart()
-        st.altair_chart(ch.selectionchart())
+        st.altair_chart(ch.emptychart())
 
         # vaccination outcome
         df = sfunc.slicedData(
