@@ -6,7 +6,7 @@ import supportFunction as sfunc
 from drawTools import Linear, Point, Area, Bar
 
 
-__version__ = '1.2.15'
+__version__ = '1.3'
 
 
 def main(hidemenu=True):
@@ -36,11 +36,12 @@ def main(hidemenu=True):
 
     # aside menu
     st.sidebar.markdown('Обновлено: {}'.format(ds['update']))
-    st.sidebar.markdown('Всего выявлено: **{}**'.format(ds['sick']))
-    st.sidebar.markdown('От населения области: **{}%**'.format(ds['proc']))
+    st.sidebar.markdown('Всего выявлено: **{0}** ({1}%)'.format(ds['sick'], ds['proc']))
     st.sidebar.markdown('Официально умерло: **{}**'.format(ds['dead']))
     st.sidebar.markdown('Общая летальность: **{}%**'.format(ds['let']))
     st.sidebar.markdown('Выписано: **{}**'.format(ds['ex']))
+    st.sidebar.markdown('Привито (Ф1): **{0}** ({1}%)'.format(ds['pr1'], ds['prproc1']))
+    st.sidebar.markdown('Привито (Ф2): **{0}** ({1}%)'.format(ds['pr2'], ds['prproc2']))
     st.sidebar.markdown('IR4 >= 1 дней: **{}**'.format(high))
     st.sidebar.markdown('IR4 < 1 дней: **{}**'.format(low))
 
@@ -65,6 +66,7 @@ def main(hidemenu=True):
         st.markdown('[Данные](https://docs.google.com/spreadsheets/d/1iAgNVDOUa-g22_VcuEAedR2tcfTlUcbFnXV5fMiqCR8/edit#gid=1038226408)')
 
         st.subheader('Изменения в версиях')
+        st.markdown('**v1.3** Удалены выбросы из данных.')
         st.markdown('**v1.2** Улушено отображение на мобильных устройствах. Оптимизирована скорость загрузки \
             страницы. Добавлены IR7 и распределение IR, распределения, данные Росстата, invitro, вакцинация.')
         st.markdown('**v1.1** Добавлена обработка данных и вывод основных визуализаций.')
@@ -393,14 +395,13 @@ def main(hidemenu=True):
         # vaccine income
         ch = Area(
             'Поступиление вакцин', 
-            data[['дата', 'поступило доз вакцин']],
-            interpolate='step', 
+            data[['дата', 'поступило кумулятивно']],
             height=400
             )
         ch.legend=None
         ch.draw()
         ch.richchart()
-        st.altair_chart(ch.selectionchart())
+        st.altair_chart(ch.emptychart())
 
         # vaccination outcome
         df = sfunc.slicedData(
