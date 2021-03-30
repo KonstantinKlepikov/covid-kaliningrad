@@ -69,7 +69,7 @@ def slicedData(data, query):
 
 
 @st.cache(suppress_st_warning=True, ttl=cTime)
-def asidedata(data, people=1012512):
+def asidedata(data, rstat, people=1012512):
     """Create data for sidebar
 
     Args:
@@ -79,6 +79,7 @@ def asidedata(data, people=1012512):
     Returns:
         dict: where keys are name ofe fields, and values are values
     """
+    import re
     ds = {}
     ds['sick'] = data['всего'].sum()
     ds['proc'] = round(ds['sick'] * 100 / people, 2)
@@ -91,6 +92,12 @@ def asidedata(data, people=1012512):
     ds['pr2'] = int(pr['компонент 2'].iloc[-1])
     ds['prproc1'] = round(ds['pr1']* 100 / people, 2)
     ds['prproc2'] = round(ds['pr2']* 100 / people, 2)
+    ds['rstat_dead'] = rstat['умерли от ковид, вирус определен'].sum() + rstat['предположительно умерли от ковид'].sum() + rstat['умерли не от ковид, вирус оказал влияние'].sum() + rstat['умерли не от ковид, не оказал влияние'].sum()
+    d = rstat['Месяц'].iloc[-1].split('.')
+    d.reverse()
+    ds['rstat_date'] = '-'.join(d)
+    ds['rstat_sick'] = data.set_index('дата').loc[:ds['rstat_date'], 'всего'].sum()
+    ds['rstat_let'] = round(ds['rstat_dead'] * 100 / ds['rstat_sick'], 2)
 
     return ds
 

@@ -28,8 +28,9 @@ def main(hidemenu=True):
     # prepare data for drawing
     p, paginator = sfunc.pagemaker() # paginator
     data = sfunc.dataloader('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/data.csv')
+    rosstat = sfunc.dataloader('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/rosstat.csv')
     invitro = sfunc.invitroCases(data[['дата', 'total', 'positive']])
-    ds = sfunc.asidedata(data) # data for aside menu
+    ds = sfunc.asidedata(data, rosstat) # data for aside menu
     high, low = sfunc.irDestrib(data)
     _colsPro = sfunc.profession(data)
     _colsReg = sfunc.regDistr(data)
@@ -44,6 +45,10 @@ def main(hidemenu=True):
     st.sidebar.markdown('Привито (Ф2): **{0}** ({1}%)'.format(ds['pr2'], ds['prproc2']))
     st.sidebar.markdown('IR4 >= 1 дней: **{}**'.format(high))
     st.sidebar.markdown('IR4 < 1 дней: **{}**'.format(low))
+    st.sidebar.markdown('Смерти связанные с covid(росстат):')
+    st.sidebar.markdown('на {}'.format(ds['rstat_date']))
+    st.sidebar.markdown('умерло: {}'.format(ds['rstat_dead']))    
+    st.sidebar.markdown('летальность: {}%'.format(ds['rstat_let']))
 
 
     # main content
@@ -224,7 +229,6 @@ def main(hidemenu=True):
         st.altair_chart(ch.emptychart())
 
         # rosstat death
-        rosstat = sfunc.dataloader('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/rosstat.csv')
         rosstat['Месяц'] = pd.to_datetime(rosstat['Месяц'], dayfirst=True)
         ch = Area(
             'Данные Росстата о смертности с диагнозом COVID-19', 

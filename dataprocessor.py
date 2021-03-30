@@ -62,7 +62,17 @@ def main():
     data['отношение'] = data['отношение'].apply(lambda x: round(x, 2))
     data['кол-во тестов кумул'] = data['кол-во тестов кумул'].astype(np.int32)
     data['поступило кумулятивно'] = data['поступило кумулятивно'].astype(np.int32)
-    for i in data.columns.difference(['дата', 'infection rate', 'IR7', 'отношение', 'кол-во тестов / 10', 'кол-во тестов кумул', 'поступило кумулятивно']):
+    data['компонент 1'] = data['компонент 1'].astype(np.int32)
+    data['компонент 2'] = data['компонент 2'].astype(np.int32)
+    for i in data.columns.difference(['дата', 
+                                      'infection rate', 
+                                      'IR7', 'отношение', 
+                                      'кол-во тестов / 10', 
+                                      'кол-во тестов кумул', 
+                                      'поступило кумулятивно', 
+                                      'компонент 1',
+                                      'компонент 2',
+                                      ]):
         data[i] = data[i].astype(np.int16)
 
 
