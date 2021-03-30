@@ -79,7 +79,6 @@ def asidedata(data, rstat, people=1012512):
     Returns:
         dict: where keys are name ofe fields, and values are values
     """
-    import re
     ds = {}
     ds['sick'] = data['всего'].sum()
     ds['proc'] = round(ds['sick'] * 100 / people, 2)

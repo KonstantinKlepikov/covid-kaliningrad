@@ -123,7 +123,7 @@ def main(hidemenu=True):
         
         # 30/1000
         ch = Linear(
-            'Кол-во случаев на 1000 человек за последние 30 дней', 
+            'Количество случаев на 1000 человек за последние 30 дней', 
             data[['дата', '30days_1000']], 
             height=400, 
             )
@@ -240,10 +240,11 @@ def main(hidemenu=True):
         st.altair_chart(ch.emptychart())
 
         # rosstat death
-        rosstat['Месяц'] = pd.to_datetime(rosstat['Месяц'], dayfirst=True)
+        rosstat_ = rosstat.copy(deep=True)
+        rosstat_['Месяц'] = pd.to_datetime(rosstat_['Месяц'], dayfirst=True)
         ch = Area(
             'Данные Росстата о смертности с диагнозом COVID-19', 
-            rosstat, 
+            rosstat_, 
             target='Месяц',
             height=400,
             width=800
