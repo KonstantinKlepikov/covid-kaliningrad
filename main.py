@@ -109,11 +109,22 @@ def main(hidemenu=True):
         ch.draw()
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
-
+        
         # cumsum cases
         ch = Linear(
             'Количество случаев аккумулировано', 
             data[['дата', 'кумул. случаи']], 
+            height=400, 
+            )
+        ch.legend=None
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.emptychart())
+        
+        # 30/1000
+        ch = Linear(
+            'Кол-во случаев на 1000 человек за последние 30 дней', 
+            data[['дата', '30days_1000']], 
             height=400, 
             )
         ch.legend=None
