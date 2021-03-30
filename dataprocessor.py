@@ -58,6 +58,7 @@ def main():
 
     # minimize numerics memory sizes
     data['IR7'] = data['IR7'].astype(np.float16)
+    data['30days_1000'] = data['30days_1000'].astype(np.float16)
     data['отношение'] = data['отношение'].astype(np.float16)
     data['отношение'] = data['отношение'].apply(lambda x: round(x, 2))
     data['кол-во тестов кумул'] = data['кол-во тестов кумул'].astype(np.int32)
@@ -72,6 +73,7 @@ def main():
                                       'поступило кумулятивно', 
                                       'компонент 1',
                                       'компонент 2',
+                                      '30days_1000',
                                       ]):
         data[i] = data[i].astype(np.int16)
 
