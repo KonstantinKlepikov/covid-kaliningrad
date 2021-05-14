@@ -37,7 +37,6 @@ def pagemaker():
     'cases': 'Динамика заражения', 
     'infection rate': 'Infection Rate', 
     'deaths': 'Данные об умерших', 
-    'exits': 'Данные о выписке', 
     'capacity': 'Нагрузка на систему', 
     'tests': 'Тестирование', 
     'vaccination': 'Вакцинация',
@@ -102,19 +101,21 @@ def asidedata(data, rstat, people=1012512):
 
 
 @st.cache(ttl=cTime)
-def invitroCases(data):
-    """Invitro data prepairing
+def ratio(data, above, below):
+    """Ratio of dara
 
     Args:
         data (pandas DataFrame): main data
+        above (str): above column name
+        below (str: below column name)
 
     Returns:
         pandas DataFrame: prepared data
     """
-    data['shape'] = data['positive'] * 100 / data['total']
+    data['shape'] = data[above] * 100 / data[below]
     data['shape'] = data['shape'].astype(np.float16)
     data['shape'] = data['shape'].apply(lambda x: round(x, 2))
-    return data
+    return data[['дата', 'shape']]
 
 
 @st.cache()

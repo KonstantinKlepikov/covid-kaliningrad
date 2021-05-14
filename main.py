@@ -6,7 +6,7 @@ import supportFunction as sfunc
 from drawTools import Linear, Point, Area, Bar
 
 
-__version__ = '1.3'
+__version__ = '1.4'
 
 
 def main(hidemenu=True):
@@ -29,7 +29,6 @@ def main(hidemenu=True):
     p, paginator = sfunc.pagemaker() # paginator
     data = sfunc.dataloader('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/data.csv')
     rosstat = sfunc.dataloader('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/datasets/data/rosstat.csv')
-    invitro = sfunc.invitroCases(data[['дата', 'total', 'positive']])
     ds = sfunc.asidedata(data, rosstat) # data for aside menu
     high, low = sfunc.irDestrib(data)
     _colsPro = sfunc.profession(data)
@@ -70,18 +69,10 @@ def main(hidemenu=True):
         st.markdown('[Репозиторий проекта](https://github.com/KonstantinKlepikov/covid-kaliningrad)')
         st.markdown('[Данные](https://docs.google.com/spreadsheets/d/1iAgNVDOUa-g22_VcuEAedR2tcfTlUcbFnXV5fMiqCR8/edit#gid=1038226408)')
 
-        st.subheader('Изменения в версиях')
-        st.markdown('**v1.3** Удалены выбросы из данных.')
-        st.markdown('**v1.2** Улушено отображение на мобильных устройствах. Оптимизирована скорость загрузки \
-            страницы. Добавлены IR7 и распределение IR, распределения, данные Росстата, invitro, вакцинация.')
-        st.markdown('**v1.1** Добавлена обработка данных и вывод основных визуализаций.')
-
         st.subheader('Контакты')
         st.markdown('[Мой блог про machine learning](https://konstantinklepikov.github.io/)')
         st.markdown('[Я на github](https://github.com/KonstantinKlepikov)')
-        st.markdown('[Мой сайт немножко про маркетинг](https://yorb.ru/)')
         st.markdown('[Телеграм](https://t.me/KlepikovKonstantin)')
-        st.markdown('[Фейсбук](https://facebook.com/konstatin.klepikov)')
 
         st.markdown('К сожалению официальные службы не поделились со мной имеющимися историческими данными. Буду благодарен \
             за любой источник данных, если таковой имеется - пишите в [телеграм](https://t.me/KlepikovKonstantin).')
@@ -90,11 +81,12 @@ def main(hidemenu=True):
     
     elif page == 'cases':
         st.header(p[page])
+        st.markdown('До 19.20.202 данные о симптоматики предоставлялись нерегулярно. После 19.10.2020 нет данных о тяжести течения болезни.')
 
         # cases
         ch = Linear(
             p[page], 
-            data[['дата', 'всего', 'ОРВИ', 'пневмония', 'без симптомов']]
+            data[['дата', 'всего', 'ОРВИ', 'пневмония', 'без симптомов', 'тяжелая форма']]
             )
         ch.draw()
         ch.richchart()
@@ -120,6 +112,50 @@ def main(hidemenu=True):
         ch.draw()
         ch.richchart()
         st.altair_chart(ch.emptychart())
+        
+        # orvi %
+        ch = Area(
+            '% случаев с ОРВИ к общему числу',
+            sfunc.ratio(data[['дата', 'всего', 'ОРВИ']], above='ОРВИ', below='всего'),
+            height=300
+            )
+        ch.legend=None
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.selectionchart())
+        
+        # pnevmonia %
+        ch = Area(
+            '% случаев с пневмонией к общему числу',
+            sfunc.ratio(data[['дата', 'всего', 'пневмония']], above='пневмония', below='всего'),
+            height=300
+            )
+        ch.legend=None
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.selectionchart())
+        
+        # no simptoms %
+        ch = Area(
+            '% случаев без симптомов к общему числу',
+            sfunc.ratio(data[['дата', 'всего', 'без симптомов']], above='без симптомов', below='всего'),
+            height=300
+            )
+        ch.legend=None
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.selectionchart())
+        
+        # not indexed source of infection
+        ch = Area(
+            '% случаев с неустановленным источником заражения',
+            sfunc.ratio(data[['дата', 'всего', 'не установлены']], above='не установлены', below='всего'),
+            height=400
+            )
+        ch.legend=None
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.selectionchart())
         
         # 30/1000
         ch = Linear(
@@ -157,7 +193,7 @@ def main(hidemenu=True):
         ch.draw()
         ch.richchart()
         st.altair_chart(ch.emptychart())
-
+        
 
     elif page == 'infection rate':
         st.header(p[page])
@@ -254,13 +290,14 @@ def main(hidemenu=True):
         st.altair_chart(ch.emptychart())
 
 
-    elif page == 'exits':
+    elif page == 'capacity':
         st.header(p[page])
+        st.markdown('Активные случаи - это заразившиеся минус выздоровевшие и умершие. Ежедневные данные о количестве \
+            болеющих и госпитализированных не предоставляются')
 
         # exit
-        st.markdown('Нет достоверной информации о том, что лечение выписанных больных в действительности закончено')
         ch = Linear(
-            'Выписаны', 
+            'Выздоровевшие', 
             data[['дата', 'всего', 'выписали']], 
             )
         ch.draw()
@@ -269,19 +306,13 @@ def main(hidemenu=True):
 
         # cumsum exit
         ch = Linear(
-            'Выписаны из больниц нарастающим итогом', 
+            'Выздоровевшие нарастающим итогом', 
             data[['дата', 'кумул. случаи', 'кумул.выписаны']], 
             height=400, 
             )
         ch.draw()
         ch.richchart()
         st.altair_chart(ch.emptychart())
-
-
-    elif page == 'capacity':
-        st.header(p[page])
-        st.markdown('Активные случаи - это заразившиеся минус выписанные и умершие. Ежедневные данные о количестве \
-            болеющих и госпитализированных не проситавляются. Данные о загруженности больниц предоставлены нерегулярно.')
 
         # cumsum minus exit
         ch = Linear(
@@ -295,15 +326,39 @@ def main(hidemenu=True):
         st.altair_chart(ch.emptychart())
 
         # hospital places
-        df = sfunc.slicedData(
-            data[['дата', 'доступно под ковид', 'занято под ковид', 'доступно ИВЛ', 'занято ИВЛ', 'доступно под ковид и пневмонию', 
-                'занято под ковид и пневмонию']],
-            "'2020-11-01' <= дата "
-            )
         ch = Point(
-            'Доступные места', 
-            df, 
-            height=800, 
+            'Развернуто под covid-19', 
+            sfunc.slicedData(
+                data[['дата', 'доступно под ковид', 'занято под ковид']],
+                "'2020-02-01' <= дата"
+                ),
+            height=600, 
+            grid=False, 
+            )
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.emptychart())
+        
+        ch = Point(
+            'Развернуто под covid-19 и пневмонию', 
+            sfunc.slicedData(
+                data[['дата', 'доступно под ковид и пневмонию', 'занято под ковид и пневмонию']],
+                "'2020-02-01' <= дата"
+                ),
+            height=600, 
+            grid=False, 
+            )
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.emptychart())
+        
+        ch = Point(
+            'Развернуто ИВЛ', 
+            sfunc.slicedData(
+                data[['дата', 'доступно ИВЛ', 'занято ИВЛ']],
+                "'2020-02-01' <= дата"
+                ),
+            height=600, 
             grid=False, 
             )
         ch.draw()
@@ -391,9 +446,9 @@ def main(hidemenu=True):
         st.altair_chart(ch.emptychart())
 
         # invitro cases shape
-        ch = Linear(
-            '% положительных тестов в Invitro', 
-            invitro[['дата', 'shape']],
+        ch = Area(
+            '% положительных тестов в Invitro',
+            sfunc.ratio(data[['дата', 'total', 'positive']], above='positive', below='total')
             )
         ch.legend=None
         ch.draw()
@@ -411,7 +466,7 @@ def main(hidemenu=True):
         # vaccine income
         ch = Area(
             'Поступиление вакцин', 
-            data[['дата', 'поступило кумулятивно']],
+            data[['дата', 'поступило кумулятивно', 'эпивак кумулятивно']],
             height=400
             )
         ch.legend=None
@@ -544,6 +599,5 @@ def main(hidemenu=True):
         st.altair_chart(
             multichart
             )
-
 
 main()
