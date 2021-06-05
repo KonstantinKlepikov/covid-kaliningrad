@@ -1,7 +1,7 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-from drawTools import Linear, Point, Area, Bar
+from drawTools import Linear
 
 
 """Support functions for data visualistion, wraped with cache decorator
@@ -91,11 +91,18 @@ def asidedata(data, rstat, people=1012512):
     ds['prproc1'] = round(ds['pr1']* 100 / people, 2)
     ds['prproc2'] = round(ds['pr2']* 100 / people, 2)
     ds['rstat_dead'] = rstat['умерли от ковид, вирус определен'].sum() + rstat['предположительно умерли от ковид'].sum() + rstat['умерли не от ковид, вирус оказал влияние'].sum() + rstat['умерли не от ковид, не оказал влияние'].sum()
+    # rosstat lerality
     d = rstat['Месяц'].iloc[-1].split('.')
     d.reverse()
     ds['rstat_date'] = '-'.join(d)
     ds['rstat_sick'] = data.set_index('дата').loc[:ds['rstat_date'], 'всего'].sum()
     ds['rstat_let'] = round(ds['rstat_dead'] * 100 / ds['rstat_sick'], 2)
+    # covid/pneumonia letality
+    lock = data.loc[data['умерли в палатах для ковид/пневмония с 1 апреля'].idxmax()]
+    ds['cov_pnew_dead'] = lock['умерли в палатах для ковид/пневмония с 1 апреля']
+    ds['cov_pnew_date'] = lock['дата']
+    cov_all = data.set_index('дата').loc[:lock['дата'], 'всего'].sum()
+    ds['cov_pnew_let'] = round(ds['cov_pnew_dead'] * 100 / cov_all, 2)
 
     return ds
 
