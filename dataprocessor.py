@@ -29,6 +29,7 @@ def main():
     data['infection rate'] = data['infection rate'].apply(lambda x: x.replace(',', '.'))
     data['IR7'] = data['IR7'].apply(lambda x: x.replace(',', '.'))
     data['30days_1000'] = data['30days_1000'].apply(lambda x: x.replace(',', '.'))
+    data['30days_1000die'] = data['30days_1000die'].apply(lambda x: x.replace(',', '.'))
 
     # calculate cumulative metrics
     data['кумул. случаи'] = data['всего'].cumsum()
