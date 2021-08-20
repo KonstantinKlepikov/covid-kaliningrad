@@ -60,28 +60,18 @@ def main():
     # minimize numerics memory sizes
     data['IR7'] = data['IR7'].astype(np.float16)
     data['30days_1000'] = data['30days_1000'].astype(np.float16)
+    data['30days_1000die'] = data['30days_1000die'].astype(np.float16)
     data['отношение'] = data['отношение'].astype(np.float16)
     data['отношение'] = data['отношение'].apply(lambda x: round(x, 2))
-    # data['кол-во тестов кумул'] = data['кол-во тестов кумул'].astype(np.int32)
-    # data['поступило кумулятивно'] = data['поступило кумулятивно'].astype(np.int32)
-    # data['кумул. случаи'] = data['кумул. случаи'].astype(np.int32)
-    # data['кумул.выписаны'] = data['кумул.выписаны'].astype(np.int32)
-    # data['компонент 1'] = data['компонент 1'].astype(np.int32)
-    # data['компонент 2'] = data['компонент 2'].astype(np.int32)
     for i in data.columns.difference(['дата', 
                                       'infection rate',
                                       'IR7', 
                                       'отношение',
                                       'кол-во тестов / 10',
-                                    #   'кол-во тестов кумул',
-                                    #   'поступило кумулятивно',
-                                    #   'кумул. случаи',
-                                    #   'кумул.выписаны',
-                                    #   'компонент 1',
-                                    #   'компонент 2',
+                                      '30days_1000die',
                                       '30days_1000',
                                       ]):
-        data[i] = data[i].astype(np.int32) #16
+        data[i] = data[i].astype(np.int32)
 
 
     # flush
