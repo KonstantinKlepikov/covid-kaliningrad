@@ -89,7 +89,7 @@ def main(hidemenu=True):
     
     elif page == 'cases':
         st.header(p[page])
-        st.markdown('До 19.20.202 данные о симптоматики предоставлялись нерегулярно. После 19.10.2020 нет данных о тяжести течения болезни.')
+        st.markdown('До 19.20.2020 данные о симптоматики предоставлялись нерегулярно. После 19.10.2020 нет данных о тяжести течения болезни.')
 
         ############## cases ##############
         ch = Linear(
@@ -274,6 +274,17 @@ def main(hidemenu=True):
         ch.draw()
         ch.richchart()
         st.altair_chart(ch.emptychart())
+        
+        ############## 30/1000 death ##############
+        ch = Linear(
+            'Количество смертей на 1000 человек за последние 30 дней', 
+            data[['дата', '30days_1000die']], 
+            height=400, 
+            )
+        ch.legend=None
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.emptychart())
 
         ############## hospital death data ##############
         st.markdown('Информация об умерших в палатах, отведенных для больных для больных пневмонией/covid предоставлялась \
@@ -391,21 +402,19 @@ def main(hidemenu=True):
 
         ############## tests ##############
         ch = Linear(
-            'Общее количество тестов', 
-            data[['дата', 'кол-во тестов']], 
+            'Тесты за день', 
+            data[['дата', 'кол-во тестов', 'кол-во обследованных']], 
             )
-        ch.legend=None
         ch.draw()
         ch.richchart()
         st.altair_chart(ch.selectionchart())
-
+        
         ############## tests cumulative ##############
         ch = Linear(
             'Общее количество тестов аккумулировано', 
-            data[['дата', 'кол-во тестов кумул']], 
+            data[['дата', 'кол-во тестов кумул', 'кол-во протестированных']], 
             height=400, 
             )
-        ch.legend=None
         ch.draw()
         ch.richchart()
         st.altair_chart(ch.emptychart())
