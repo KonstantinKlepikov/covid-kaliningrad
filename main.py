@@ -78,16 +78,20 @@ def main(hidemenu=True):
         st.markdown('[Я на github](https://github.com/KonstantinKlepikov)')
         st.markdown('[Телеграм](https://t.me/KlepikovKonstantin)')
 
-        st.markdown('К сожалению официальные службы не поделились со мной имеющимися историческими данными. Буду благодарен \
-            за любой источник данных, если таковой имеется - пишите в [телеграм](https://t.me/KlepikovKonstantin).')
+        st.markdown('К сожалению медицинские службы региона не смогли предоставить исторические данные. Буду благодарен \
+            за любой источник информации, если таковой имеется - пишите в [телеграм](https://t.me/KlepikovKonstantin).')
         st.image('https://raw.githubusercontent.com/KonstantinKlepikov/covid-kaliningrad/main/img/answer.png', use_column_width=True)
 
+
+    ##########################################
+    ############## cases #####################
+    ##########################################
     
     elif page == 'cases':
         st.header(p[page])
         st.markdown('До 19.20.202 данные о симптоматики предоставлялись нерегулярно. После 19.10.2020 нет данных о тяжести течения болезни.')
 
-        # cases
+        ############## cases ##############
         ch = Linear(
             p[page], 
             data[['дата', 'всего', 'ОРВИ', 'пневмония', 'без симптомов', 'тяжелая форма']]
@@ -96,7 +100,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.selectionchart())
 
-        # area cases
+        ############## area cases ##############
         ch = Area(
             p[page], 
             data[['дата', 'ОРВИ', 'пневмония', 'без симптомов']],
@@ -106,7 +110,7 @@ def main(hidemenu=True):
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
         
-        # cumsum cases
+        ############## cumsum cases ##############
         ch = Linear(
             'Количество случаев аккумулировано', 
             data[['дата', 'кумул. случаи']], 
@@ -117,7 +121,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.emptychart())
         
-        # orvi %
+        ############## orvi ##############
         ch = Area(
             '% случаев с ОРВИ к общему числу',
             sfunc.ratio(data[['дата', 'всего', 'ОРВИ']], above='ОРВИ', below='всего'),
@@ -128,7 +132,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.selectionchart())
         
-        # pnevmonia %
+        ############## pnevmonia ##############
         ch = Area(
             '% случаев с пневмонией к общему числу',
             sfunc.ratio(data[['дата', 'всего', 'пневмония']], above='пневмония', below='всего'),
@@ -139,7 +143,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.selectionchart())
         
-        # no simptoms %
+        ############## no simptoms ##############
         ch = Area(
             '% случаев без симптомов к общему числу',
             sfunc.ratio(data[['дата', 'всего', 'без симптомов']], above='без симптомов', below='всего'),
@@ -150,7 +154,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.selectionchart())
         
-        # not indexed source of infection
+        ############## not indexed source of infection ##############
         ch = Area(
             '% случаев с неустановленным источником заражения',
             sfunc.ratio(data[['дата', 'всего', 'не установлены']], above='не установлены', below='всего'),
@@ -161,7 +165,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.selectionchart())
         
-        # 30/1000
+        ############## 30/1000 ##############
         ch = Linear(
             'Количество случаев на 1000 человек за последние 30 дней', 
             data[['дата', '30days_1000']], 
@@ -172,7 +176,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.emptychart())
 
-        # invitro cases
+        ############## invitro cases ##############
         st.subheader('Данные о случаях, выявленных в сети клиник Invitro (IgG)')
         st.markdown('Нет сведений о том, что данные случаи учитываются в статистике Роспотребнадзора. Сведения \
             получены на сайте [invitro.ru](https://invitro.ru/l/invitro_monitor/)')
@@ -187,7 +191,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.selectionchart())
 
-        # invitro cases cumulative
+        ############## invitro cases cumulative ##############
         ch = Linear(
             'Кейсы в Invitro аккумулировано', 
             data[['дата', 'positivecum']],
@@ -197,12 +201,15 @@ def main(hidemenu=True):
         ch.draw()
         ch.richchart()
         st.altair_chart(ch.emptychart())
-        
+    
+    ##########################################
+    ############# infection rate #############
+    ##########################################
 
     elif page == 'infection rate':
         st.header(p[page])
 
-        # ir4
+        ############## ir4 ##############
         st.markdown('IR4 расчитывается по методике Роспотребнадзора - как отношение количества заболевших за прошедшие \
             4 дня к количеству заболевших за предыдущие прошедшие 4 дня.')
         ch = Linear(
@@ -215,7 +222,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.baselinechart())
 
-        # ir7
+        ############## ir7 ##############   
         ch = Linear(
             'Infection Rate 7 days', 
             data[['дата', 'IR7']], 
@@ -226,7 +233,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.baselinechart())
 
-        # ir difference
+        ############## ir difference ##############
         ch = Linear(
             'Распределение отношения количества дней с положительным ir4 к количеству дней с отрицательным ir4', 
             data[['дата', 'отношение']], 
@@ -237,11 +244,14 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.baselinechart())
 
+    ##########################################
+    ############### deaths ###################
+    ##########################################
 
     elif page == 'deaths':
         st.header(p[page])
 
-        # deaths with polynomial
+        ############## deaths with polynomial ##############
         ch = Area(
             'умерли от ковид', 
             data[['дата', 'умерли от ковид']],
@@ -254,7 +264,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.polynomialchart())
 
-        # death cumsum
+        ############## death cumsum ##############
         ch = Linear(
             'смертельные случаи нарастающим итогом', 
             data[['дата', 'кумул.умерли']], 
@@ -265,7 +275,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.emptychart())
 
-        # hospital death data
+        ############## hospital death data ##############
         st.markdown('Информация об умерших в палатах, отведенных для больных для больных пневмонией/covid предоставлялась \
             мед.службами по запросу [newkaliningrad.ru](https://www.newkaliningrad.ru/)')
         ch = Linear(
@@ -279,7 +289,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.emptychart())
 
-        # rosstat death
+        ############## rosstat death ##############
         rosstat_ = rosstat.copy(deep=True)
         rosstat_['Месяц'] = pd.to_datetime(rosstat_['Месяц'], dayfirst=True)
         ch = Area(
@@ -293,13 +303,16 @@ def main(hidemenu=True):
         ch.leanchart()
         st.altair_chart(ch.emptychart())
 
+    ##########################################
+    ############## capacity ##################
+    ##########################################
 
     elif page == 'capacity':
         st.header(p[page])
         st.markdown('Активные случаи - это заразившиеся минус выздоровевшие и умершие. Ежедневные данные о количестве \
             болеющих и госпитализированных не предоставляются')
 
-        # exit
+        ############## exit ##############
         ch = Linear(
             'Выздоровевшие', 
             data[['дата', 'всего', 'выписали']], 
@@ -308,7 +321,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.selectionchart())
 
-        # cumsum exit
+        ############## cumsum exit ##############
         ch = Linear(
             'Выздоровевшие нарастающим итогом', 
             data[['дата', 'кумул. случаи', 'кумул.выписаны']], 
@@ -318,7 +331,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.emptychart())
 
-        # cumsum minus exit
+        ############## cumsum minus exit ##############
         ch = Linear(
             'Активные случаи нарастающим итогом', 
             data[['дата', 'кумул.активные']], 
@@ -329,7 +342,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.emptychart())
 
-        # hospital places
+        ############## hospital places ##############
         ch = Point(
             'Развернуто под covid-19', 
             sfunc.slicedData(
@@ -369,11 +382,14 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.emptychart())
 
+    ##########################################
+    ############### tests ####################
+    ##########################################
 
     elif page == 'tests':
         st.header(p[page])
 
-        # tests
+        ############## tests ##############
         ch = Linear(
             'Общее количество тестов', 
             data[['дата', 'кол-во тестов']], 
@@ -383,7 +399,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.selectionchart())
 
-        # tests cumulative
+        ############## tests cumulative ##############
         ch = Linear(
             'Общее количество тестов аккумулировано', 
             data[['дата', 'кол-во тестов кумул']], 
@@ -394,7 +410,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.emptychart())
 
-        # tests and cases
+        ############## tests and cases ##############
         st.markdown('Для наглядности, количество тестов разделено на 10 для приведенных графиков.')
         ch = Linear(
             'Тестирование и распространение болезни', 
@@ -405,7 +421,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.selectionchart())
 
-        # tests and exit
+        ############### tests and exit ##############
         ch = Linear(
             'Тестирование и выписка', 
             data[['дата', 'выписали', 'кол-во тестов / 10']], 
@@ -415,7 +431,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.selectionchart())
 
-        # invitro tests
+        ############## invitro tests ##############
         st.subheader('Данные о тестах, проведенных в сети клиник Invitro (IgG)')
         st.markdown('Нет сведений о том, что данные о тестах invitro учитываются в статистике Роспотребнадзора. \
             Сведения получены на сайте [invitro.ru](https://invitro.ru/l/invitro_monitor/)')
@@ -428,7 +444,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.selectionchart())
 
-        # invitro tests cumulative
+        ############## invitro tests cumulative ##############
         ch = Linear(
             'Тесты в Invitro аккумулирован', 
             data[['дата', 'totalcum']], 
@@ -439,7 +455,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.emptychart())
 
-        # invitro cases cumulative
+        ############## invitro cases cumulative ##############
         ch = Linear(
             'Тесты в Invitro аккумулировано (на фоне общего числа официально зафиксированных случаев)', 
             data[['дата', 'кумул. случаи', 'positivecum', 'negativecum']], 
@@ -449,7 +465,7 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.emptychart())
 
-        # invitro cases shape
+        ############## invitro cases shape ##############
         ch = Area(
             '% положительных тестов в Invitro',
             sfunc.ratio(data[['дата', 'total', 'positive']], above='positive', below='total')
@@ -459,6 +475,9 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.selectionchart())
 
+    ##########################################
+    ##############v accination ###############
+    ##########################################
 
     elif page == 'vaccination':
         st.header(p[page])
@@ -467,18 +486,17 @@ def main(hidemenu=True):
             Кроме того, сообщалось, что по оканчанию эксперимента все, кто получаил плацебо, будут привиты действующим препаратом.\
             Сведений о том, что все участники эксперимента действительно получиили настоящий препарат не имеется.')
 
-        # vaccine income
+        ############## vaccine income ##############
         ch = Area(
             'Поступиление вакцин', 
-            data[['дата', 'поступило кумулятивно', 'эпивак кумулятивно']],
-            height=400
+            data[['дата', 'поступило кумулятивно', 'эпивак кумулятивно', 'ковивак кумул', 'спутник лайт кумул']],
+            height=600
             )
-        ch.legend=None
         ch.draw()
         ch.richchart()
         st.altair_chart(ch.emptychart())
 
-        # vaccination outcome
+        ############## vaccination outcome ##############
         df = sfunc.slicedData(
             data[['дата', 'компонент 1', 'компонент 2']],
             "'2020-08-01' <= дата "
@@ -492,11 +510,14 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.emptychart())
 
+    ##########################################
+    ############## regions ###################
+    ##########################################
 
     elif page == 'regions':
         st.header(p[page])
 
-        # Kaliningrad and regions
+        ############## Kaliningrad and regions ##############
         ch = Area(
             'Калининград и регионы', 
             data[['дата', 'Калининград', 'все кроме Калининграда']], 
@@ -507,7 +528,7 @@ def main(hidemenu=True):
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
-        # All regions
+        ############## All regions ##############
         ch = Area(
             'Распределение случаев по региону', 
             data[_colsReg], 
@@ -518,10 +539,13 @@ def main(hidemenu=True):
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
+    ##########################################
+    ############ regions detail ##############
+    ##########################################
 
     elif page == 'regions detail':
 
-        # regions by city
+        ############## regions by city ##############
         st.header('Распределение по регионам (подробнее)')
         multichart = sfunc.precision('Калининград', data[['дата', 'Калининград']])
         for i in _colsReg:
@@ -531,11 +555,14 @@ def main(hidemenu=True):
             multichart
             )
 
+    ##########################################
+    ##################### demographics #######
+    ##########################################
 
     elif page == 'demographics':
         st.header(p[page])
 
-        # activivty
+        ############## activivty ##############
         ch = Area(
             'Распределение случаев по статусу', 
             data[['дата', 'воспитанники/учащиеся', 'работающие', 'служащие', 'неработающие и самозанятые', 'пенсионеры']], 
@@ -546,7 +573,7 @@ def main(hidemenu=True):
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
-        # profession diagram
+        ############## profession diagram ##############
         ch = Area(
             'Распределение случаев по роду деятельности', 
             data[_colsPro], 
@@ -557,7 +584,7 @@ def main(hidemenu=True):
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
-        # sex
+        ############## sex ##############
         ch = Area(
             'Распределение случаев по полу', 
             data[['дата', 'мужчины', 'женщины']], 
@@ -568,7 +595,7 @@ def main(hidemenu=True):
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
-        # age destribution
+        ############## age destribution ##############
         _colsAge = sfunc.ageDestr(data)
         ch = Area(
             'Распределение случаев по возрасту', 
@@ -580,7 +607,7 @@ def main(hidemenu=True):
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
-        # source
+        ############## source ##############
         ch = Area(
             'Распределение по источнику заражения', 
             data[['дата', 'завозные', 'контактные', 'не установлены']], 
@@ -591,6 +618,9 @@ def main(hidemenu=True):
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
 
+    ##########################################
+    ############# demographics detail ########
+    ##########################################
     
     elif page == 'demographics detail':
 
