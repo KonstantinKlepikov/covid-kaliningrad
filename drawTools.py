@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from altair.vegalite.v4.schema.channels import Opacity
 import numpy as np
 import pandas as pd
 import altair as alt
@@ -8,7 +9,7 @@ def my_color_theme():
   return {
     'config': {
       'view': {'continuousHeight': 300, 'continuousWidth': 400},
-      'range': {'category': ['#4d9be6', '#e83b3b', '#0b8a8f', '#fb6b1d', '#a884f3', '#fbb954', '#1ebc73', '#f04f78', '#4d65b4', '#91db69', '#c32454', '#cd683d', '#905ea9', '#831c5d', '#0b8a8f', '#f68181', 
+      'range': {'category': ['#e83b3b', '#4d9be6', '#0b8a8f', '#fb6b1d', '#a884f3', '#fbb954', '#1ebc73', '#f04f78', '#4d65b4', '#91db69', '#c32454', '#cd683d', '#905ea9', '#831c5d', '#0b8a8f', '#f68181', 
 '#8fd3ff', '#fca790', '#8ff8e2', '#fbff86', '#e3c896', '#0b5e65', '#eaaded', '#7a3045', '#905ea9', '#9e4539', '#ab947a', '#484a77', '#3e3546', '#966c6c', '#625565', '#30e1b9',]}
     }
   }

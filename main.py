@@ -6,7 +6,7 @@ import supportFunction as sfunc
 from drawTools import Linear, Point, Area, Bar
 
 
-__version__ = '1.4'
+__version__ = '1.5'
 
 
 def main(hidemenu=True):
@@ -36,18 +36,24 @@ def main(hidemenu=True):
 
     # aside menu
     st.sidebar.markdown('Обновлено: {}'.format(ds['update']))
-    st.sidebar.markdown('Всего выявлено: **{0}** ({1}%)'.format(ds['sick'], ds['proc']))
-    st.sidebar.markdown('Официально умерло: **{}**'.format(ds['dead']))
-    st.sidebar.markdown('Общая летальность: **{}%**'.format(ds['let']))
-    st.sidebar.markdown('Выписано: **{}**'.format(ds['ex']))
-    st.sidebar.markdown('Привито (Ф1): **{0}** ({1}%)'.format(ds['pr1'], ds['prproc1']))
-    st.sidebar.markdown('Привито (Ф2): **{0}** ({1}%)'.format(ds['pr2'], ds['prproc2']))
+    st.sidebar.markdown('всего выявлено: **{0}** ({1}%)'.format(ds['sick'], ds['proc']))
+    st.sidebar.markdown('официально умерло: **{}**'.format(ds['dead']))
+    st.sidebar.markdown('официальная летальность: **{}%**'.format(ds['let']))
+    st.sidebar.markdown('выписано: **{}**'.format(ds['ex']))
+    st.sidebar.markdown('Вакцинированация:')
+    st.sidebar.markdown('привито (Ф1): **{0}** ({1}%)'.format(ds['pr1'], ds['prproc1']))
+    st.sidebar.markdown('привито (Ф2): **{0}** ({1}%)'.format(ds['pr2'], ds['prproc2']))
+    st.sidebar.markdown('всего заболело: **{0}** ({1}%)'.format(ds['vacc_cases'], ds['vacc_proc_full']))
+    st.sidebar.markdown('от заболевших: {}%'.format(ds['vacc_proc']))
+    st.sidebar.markdown('от полностью привитых: {}%'.format(ds['vacc_proc_vac']))
+    st.sidebar.markdown('официально умерло: {}'.format(ds['vacc_dead']))
+    st.sidebar.markdown('официальная летальность: **{}**%'.format(ds['vacc_let']))
     # st.sidebar.markdown('IR4 >= 1 дней: **{}**'.format(high))
     # st.sidebar.markdown('IR4 < 1 дней: **{}**'.format(low))
     st.sidebar.markdown('Смерти связанные с covid(росстат):')
     st.sidebar.markdown('на {}'.format(ds['rstat_date']))
     st.sidebar.markdown('умерло: {}'.format(ds['rstat_dead']))    
-    st.sidebar.markdown('летальность: {}%'.format(ds['rstat_let']))
+    st.sidebar.markdown('летальность: **{}**%'.format(ds['rstat_let']))
     st.sidebar.markdown('Умерли с ковид/пневмонией:')
     st.sidebar.markdown('на {}'.format(ds['cov_pnew_date']))
     st.sidebar.markdown('умерло: {}'.format(ds['cov_pnew_dead']))
@@ -121,6 +127,17 @@ def main(hidemenu=True):
         ch.richchart()
         st.altair_chart(ch.emptychart())
         
+        ############## under control ##############
+        ch = Area(
+            'Находятся под наблюдением (выдано предписание об изоляции)',
+            data[['дата', 'мед.наблюдение']],
+            height=400
+            )
+        ch.legend=None
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.selectionchart())
+        
         ############## orvi ##############
         ch = Area(
             '% случаев с ОРВИ к общему числу',
@@ -153,18 +170,7 @@ def main(hidemenu=True):
         ch.draw()
         ch.richchart()
         st.altair_chart(ch.selectionchart())
-        
-        ############## not indexed source of infection ##############
-        ch = Area(
-            '% случаев с неустановленным источником заражения',
-            sfunc.ratio(data[['дата', 'всего', 'не установлены']], above='не установлены', below='всего'),
-            height=400
-            )
-        ch.legend=None
-        ch.draw()
-        ch.richchart()
-        st.altair_chart(ch.selectionchart())
-        
+
         ############## 30/1000 ##############
         ch = Linear(
             'Количество случаев на 1000 человек за последние 30 дней', 
@@ -196,6 +202,18 @@ def main(hidemenu=True):
             'Кейсы в Invitro аккумулировано', 
             data[['дата', 'positivecum']],
             height=400
+            )
+        ch.legend=None
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.emptychart())
+
+        ############## vaccinated casses ##############
+        ch = Area(
+            'Выявлено среди вакцинированных', 
+            data[['дата', 'привитых']],
+            height=300, 
+            grid=False, 
             )
         ch.legend=None
         ch.draw()
@@ -234,6 +252,12 @@ def main(hidemenu=True):
         st.altair_chart(ch.baselinechart())
 
         ############## ir difference ##############
+        # dfnorm = data[['дата', 'отношение']].copy()
+        # ma = dfnorm[['дата', 'отношение']].max()[1]
+        # mi = dfnorm[['дата', 'отношение']].min()[1]
+        # dfnorm[['отношение']] = (dfnorm[['отношение']] - mi)/(ma-mi)
+        # dfnorm.fillna(0, inplace=True)
+        # dfnorm['отношение'] = dfnorm['отношение'].apply(lambda x: round(x, 2))
         ch = Linear(
             'Распределение отношения количества дней с положительным ir4 к количеству дней с отрицательным ir4', 
             data[['дата', 'отношение']], 
@@ -313,6 +337,18 @@ def main(hidemenu=True):
         ch.draw()
         ch.leanchart()
         st.altair_chart(ch.emptychart())
+        
+        ############## vaccinated dead ##############
+        ch = Linear(
+            'Умерло среди вакцинированных', 
+            data[['дата', 'привитых умерло']],
+            height=300, 
+            grid=False,
+            )
+        ch.legend=None
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.emptychart())
 
     ##########################################
     ############## capacity ##################
@@ -376,6 +412,20 @@ def main(hidemenu=True):
             height=600, 
             grid=False, 
             )
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.emptychart())
+        
+        ch = Point(
+            'Находится на кислородной поддержке', 
+            sfunc.slicedData(
+                data[['дата', 'кисл.поддержка']],
+                "'2020-02-01' <= дата"
+                ),
+            height=300, 
+            grid=False, 
+            )
+        ch.legend=None
         ch.draw()
         ch.richchart()
         st.altair_chart(ch.emptychart())
@@ -485,34 +535,52 @@ def main(hidemenu=True):
         st.altair_chart(ch.selectionchart())
 
     ##########################################
-    ##############v accination ###############
+    ##############vaccination ################
     ##########################################
 
     elif page == 'vaccination':
         st.header(p[page])
+        
+        ############## vaccin income total ##############
+        ch = Area(
+            'Всего поступило вакцин',
+            data[['дата', 'всего поступило']], 
+            height=400, 
+            )
+        ch.draw()
+        ch.richchart()
+        st.altair_chart(ch.emptychart())
+        
+        st.markdown('Графа "поступило кумулятивно" определяет объем вакцины sputnik-v. После 2021-09-01 не публиковались сведения о типе вакцины, поступившей в регион.')
+        
         st.markdown('В значение поступившей вакцины и к значениям привитых официальной статистикой отнесены 300 доз \
             экспериментальной вакцины (20% плацебо). Сообщалось, что прививку получили чиновники (губернатор Калининградской области)\
             Кроме того, сообщалось, что по оканчанию эксперимента все, кто получаил плацебо, будут привиты действующим препаратом.\
             Сведений о том, что все участники эксперимента действительно получиили настоящий препарат не имеется.')
 
         ############## vaccine income ##############
+        dfv = data[['дата', 'поступило кумулятивно', 'эпивак кумулятивно', 'ковивак кумул', 'спутник лайт кумул']].query("'2021-09-01' >= дата")
         ch = Area(
             'Поступиление вакцин', 
-            data[['дата', 'поступило кумулятивно', 'эпивак кумулятивно', 'ковивак кумул', 'спутник лайт кумул']],
-            height=600
+            dfv,
+            height=400
             )
         ch.draw()
         ch.richchart()
         st.altair_chart(ch.emptychart())
+        
+        st.markdown('В статистику не включены данные по вакцинации военнослужащих. По сообщению пресс.службы Балт.Флота от 29.10.2021, 98,7% военнослужащих прошли вакцинацию.')
+        
+        st.markdown('Данный график не содержит сведения о ревакцинации.')
 
         ############## vaccination outcome ##############
-        df = sfunc.slicedData(
+        dfout = sfunc.slicedData(
             data[['дата', 'компонент 1', 'компонент 2']],
-            "'2020-08-01' <= дата "
+            "'2020-08-01' <= дата"
             )
         ch = Point(
             'Использовано вакцин',
-            df, 
+            dfout, 
             height=400, 
             )
         ch.draw()
@@ -531,6 +599,18 @@ def main(hidemenu=True):
             'Калининград и регионы', 
             data[['дата', 'Калининград', 'все кроме Калининграда']], 
             interpolate='step', 
+            height=400,
+            )
+        ch.draw()
+        ch.leanchart()
+        st.altair_chart(ch.selectionchart())
+        
+        ############## activivty linear ##############
+        dfreg = sfunc.nonzeroData(data[['дата', 'Калининград', 'все кроме Калининграда']])
+        ch = Linear(
+            '', 
+            dfreg, 
+            interpolate='monotone',
             height=400,
             )
         ch.draw()
@@ -581,6 +661,18 @@ def main(hidemenu=True):
         ch.draw()
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
+        
+        ############## activivty linear ##############
+        dfact = sfunc.nonzeroData(data[['дата', 'воспитанники/учащиеся', 'работающие', 'служащие', 'неработающие и самозанятые', 'пенсионеры']])
+        ch = Linear(
+            '', 
+            dfact,
+            interpolate='monotone',
+            height=300,
+            )
+        ch.draw()
+        ch.leanchart()
+        st.altair_chart(ch.selectionchart())
 
         ############## profession diagram ##############
         ch = Area(
@@ -603,6 +695,17 @@ def main(hidemenu=True):
         ch.draw()
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
+        
+        ############## sex point ##############
+        dfsex = sfunc.nonzeroData(data[['дата', 'мужчины', 'женщины']])
+        ch = Point(
+            '', 
+            dfsex, 
+            height=200,
+            )
+        ch.draw()
+        ch.leanchart()
+        st.altair_chart(ch.selectionchart())
 
         ############## age destribution ##############
         _colsAge = sfunc.ageDestr(data)
@@ -615,6 +718,18 @@ def main(hidemenu=True):
         ch.draw()
         ch.leanchart()
         st.altair_chart(ch.selectionchart())
+        
+        ############## age destribution linear ##############
+        dfage = sfunc.nonzeroData(data[_colsAge])
+        ch = Linear(
+            '', 
+            dfage,
+            interpolate='monotone', 
+            height=300,
+            )
+        ch.draw()
+        ch.leanchart()
+        st.altair_chart(ch.selectionchart())
 
         ############## source ##############
         ch = Area(
@@ -623,6 +738,17 @@ def main(hidemenu=True):
             interpolate='step', 
             height=400,
             )
+        ch.draw()
+        ch.leanchart()
+        st.altair_chart(ch.selectionchart())
+        
+        ############## not indexed source of infection ##############
+        ch = Area(
+            '% случаев с неустановленным источником заражения',
+            sfunc.ratio(data[['дата', 'всего', 'не установлены']], above='не установлены', below='всего'),
+            height=300
+            )
+        ch.legend=None
         ch.draw()
         ch.leanchart()
         st.altair_chart(ch.selectionchart())

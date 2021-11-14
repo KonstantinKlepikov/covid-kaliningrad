@@ -67,6 +67,22 @@ def slicedData(data, query):
     return df.replace(0, np.nan)
 
 
+@st.cache(ttl=cTime)
+def nonzeroData(data):
+    """Remove zeros for point sparced charts
+
+    Args:
+        data (pandas DataFrame): main data
+
+    Returns:
+        pandas DataFrame: prepared data
+    """
+    data.set_index('дата', inplace=True)
+    data = data[(data.T != 0).any()]
+    data.reset_index(inplace=True)
+    return data.replace(0, np.nan)
+
+
 @st.cache(suppress_st_warning=True, ttl=cTime)
 def asidedata(data, rstat, people=1012512):
     """Create data for sidebar
@@ -103,6 +119,13 @@ def asidedata(data, rstat, people=1012512):
     ds['cov_pnew_date'] = lock['дата']
     cov_all = data.set_index('дата').loc[:lock['дата'], 'всего'].sum()
     ds['cov_pnew_let'] = round(ds['cov_pnew_dead'] * 100 / cov_all, 2)
+    # vaccinated letality
+    ds['vacc_cases']  = data['привитых'].max()
+    ds['vacc_proc_full'] = round(ds['vacc_cases'] * 100 / people , 2)
+    ds['vacc_proc'] = round(ds['vacc_cases']  * 100 / ds['sick'] , 2)
+    ds['vacc_proc_vac'] = round(ds['vacc_cases']  * 100 / ds['pr2'] , 2)
+    ds['vacc_dead']  = data['привитых умерло'].max()
+    ds['vacc_let']  = round(ds['vacc_dead'] * 100 / ds['vacc_cases'], 2)
 
     return ds
 
